@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useRegistro } from '@/hooks/useLecturaForm';
 
-export const TOTAL_PASOS = 3;
+export const TOTAL_PASOS = 4;
 
 /** Cabecera del registro de lectura con el avance por pasos. */
 export function RegistroHeader({ paso, titulo }: { paso: number; titulo: string }) {

@@ -8,6 +8,7 @@ import {
   calcularConsumo,
   claveLectura,
   esConsumoAnomalo,
+  fotoEsObligatoria,
   periodoDe,
 } from '@/domain/medidor.rules';
 import { crearLecturaSchema, type LecturaFormValues } from '@/domain/medidor.schema';
@@ -21,6 +22,7 @@ interface Calculo {
   /** Null si no hay lectura o si no se tienen datos del medidor (sin señal y sin caché). */
   consumo: number | null;
   esAnomalo: boolean;
+  fotoObligatoria: boolean;
 }
 
 interface RegistroContextValue {
@@ -40,13 +42,14 @@ const VALORES_INICIALES: DefaultValues<LecturaFormValues> = {
   motivo: '',
   descripcion: '',
   revisionConfirmada: false,
+  fotoUri: null,
 };
 
 function calcular(medidor: MedidorEnCache | null, v: LecturaFormValues): Calculo {
   const lectura = v.estado !== 'INACCESIBLE' && /^\d+$/.test(v.lectura) ? Number(v.lectura) : null;
-  if (lectura === null || !medidor) return { lectura, consumo: null, esAnomalo: false };
-  const consumo = calcularConsumo(medidor, lectura);
-  return { lectura, consumo, esAnomalo: consumo >= 0 && esConsumoAnomalo(medidor, consumo) };
+  const consumo = lectura !== null && medidor ? calcularConsumo(medidor, lectura) : null;
+  const esAnomalo = consumo !== null && consumo >= 0 && esConsumoAnomalo(medidor!, consumo);
+  return { lectura, consumo, esAnomalo, fotoObligatoria: fotoEsObligatoria(v.estado, esAnomalo) };
 }
 
 /**
@@ -96,7 +99,7 @@ export function RegistroProvider({
       revisionConfirmada: esAnomalo && v.revisionConfirmada,
       observacion:
         v.estado === 'INACCESIBLE' ? v.motivo.trim() : v.estado === 'DANADO' ? v.descripcion.trim() : null,
-      fotoUri: null,
+      fotoUri: v.fotoUri,
       verificacion,
       registradaEn: ahora.toISOString(),
     });

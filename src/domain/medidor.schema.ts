@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { calcularConsumo, esConsumoAnomalo } from './medidor.rules';
+import { calcularConsumo, esConsumoAnomalo, fotoEsObligatoria } from './medidor.rules';
 import type { Medidor } from './types';
 
 export const ESTADOS_MEDIDOR = ['NORMAL', 'INACCESIBLE', 'DANADO'] as const;
@@ -20,6 +20,8 @@ export function crearLecturaSchema(medidor: Medidor | null) {
       motivo: z.string().trim(),
       descripcion: z.string().trim(),
       revisionConfirmada: z.boolean(),
+      /** Ruta de la foto ya copiada al almacenamiento persistente del teléfono. */
+      fotoUri: z.string().nullable(),
     })
     .superRefine((d, ctx) => {
       const tieneLectura = d.lectura !== '';
@@ -62,19 +64,34 @@ export function crearLecturaSchema(medidor: Medidor | null) {
       }
 
       // R6: comparación con la lectura anterior.
-      if (!medidor || !tieneLectura || d.estado === 'INACCESIBLE') return;
-      const consumo = calcularConsumo(medidor, Number(d.lectura));
-      if (consumo < 0) {
+      let esAnomalo = false;
+      if (medidor && tieneLectura && d.estado !== 'INACCESIBLE') {
+        const consumo = calcularConsumo(medidor, Number(d.lectura));
+        esAnomalo = consumo >= 0 && esConsumoAnomalo(medidor, consumo);
+        if (consumo < 0) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['lectura'],
+            message: `No puede ser menor que la lectura anterior (${medidor.ultimaLectura} m³)`,
+          });
+        } else if (esAnomalo && !d.revisionConfirmada) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['revisionConfirmada'],
+            message: 'Confirma que revisaste el medidor para continuar',
+          });
+        }
+      }
+
+      // R7: foto obligatoria con consumo anómalo o medidor dañado.
+      if (fotoEsObligatoria(d.estado, esAnomalo) && !d.fotoUri) {
         ctx.addIssue({
           code: 'custom',
-          path: ['lectura'],
-          message: `No puede ser menor que la lectura anterior (${medidor.ultimaLectura} m³)`,
-        });
-      } else if (esConsumoAnomalo(medidor, consumo) && !d.revisionConfirmada) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['revisionConfirmada'],
-          message: 'Confirma que revisaste el medidor para continuar',
+          path: ['fotoUri'],
+          message:
+            d.estado === 'DANADO'
+              ? 'La foto es obligatoria cuando el medidor está dañado'
+              : 'La foto es obligatoria cuando el consumo es anómalo',
         });
       }
     });

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native';
 
 import { RegistroHeader } from '@/components/RegistroHeader';
 import { Badge, Button, Card } from '@/components/ui';
@@ -41,7 +41,7 @@ export default function ResumenScreen() {
 
   return (
     <View className="flex-1 bg-slate-100">
-      <RegistroHeader paso={3} titulo="Confirmar registro" />
+      <RegistroHeader paso={4} titulo="Confirmar registro" />
       <ScrollView contentContainerClassName="gap-4 p-4 pb-10">
         <Card>
           <Fila etiqueta="Estado del medidor" valor={ETIQUETA_ESTADO[v.estado]} />
@@ -59,10 +59,19 @@ export default function ResumenScreen() {
           ) : null}
           {v.estado === 'INACCESIBLE' ? <Fila etiqueta="Motivo" valor={v.motivo} /> : null}
           {v.estado === 'DANADO' ? <Fila etiqueta="Descripción del daño" valor={v.descripcion} /> : null}
+          <Fila etiqueta="Foto" valor={v.fotoUri ? 'Adjunta' : 'Sin foto'} />
           {calculo.esAnomalo ? (
             <View className="mt-3">
               <Badge tono="advertencia" texto="Consumo anómalo · revisión confirmada" />
             </View>
+          ) : null}
+          {v.fotoUri ? (
+            <Image
+              source={{ uri: v.fotoUri }}
+              accessibilityLabel="Foto del medidor"
+              className="mt-3 h-40 w-full rounded-2xl bg-slate-200"
+              resizeMode="cover"
+            />
           ) : null}
         </Card>
 
