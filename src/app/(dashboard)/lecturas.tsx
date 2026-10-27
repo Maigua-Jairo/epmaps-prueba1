@@ -10,6 +10,7 @@ import { listarLecturasDeTecnico } from '@/database/repositories/lecturaReposito
 import type { Lectura } from '@/domain/types';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useSession } from '@/hooks/useSession';
+import { borradorDe } from '@/services/borradores';
 
 /** Lecturas registradas por el técnico; las pendientes se pueden corregir (R10). */
 export default function MisLecturasScreen() {
@@ -49,12 +50,17 @@ export default function MisLecturasScreen() {
         renderItem={({ item }) => (
           <LecturaItem
             lectura={item}
-            onCorregir={() =>
+            onCorregir={async () => {
+              // Un registro a la vez: si hay uno a medias, primero se decide qué hacer con él (R8).
+              if (sesion && (await borradorDe(db, sesion.tecnico.codigo))) {
+                router.push('/borrador-modal');
+                return;
+              }
               router.push({
                 pathname: '/lectura/[codigo]',
                 params: { codigo: item.codigoMedidor, id: String(item.id) },
-              })
-            }
+              });
+            }}
           />
         )}
         ListEmptyComponent={

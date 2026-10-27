@@ -1,8 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSQLiteContext } from 'expo-sqlite';
-import { createContext, use, type ReactNode } from 'react';
+import { createContext, use, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { useForm, type DefaultValues, type UseFormReturn } from 'react-hook-form';
+import { AppState } from 'react-native';
 
+import {
+  eliminarBorrador,
+  guardarBorrador,
+  type Borrador,
+  type PasoRegistro,
+} from '@/database/repositories/borradorRepository';
 import { corregirLectura, insertarLectura } from '@/database/repositories/lecturaRepository';
 import {
   calcularConsumo,
@@ -19,6 +26,9 @@ import { hayConexion } from '@/services/networkService';
 
 import { useSession } from './useSession';
 
+/** Espera tras la última tecla antes de escribir el borrador en SQLite. */
+const DEBOUNCE_BORRADOR_MS = 300;
+
 interface Calculo {
   lectura: number | null;
   /** Null si no hay lectura o si no se tienen datos del medidor (sin señal y sin caché). */
@@ -34,6 +44,10 @@ interface RegistroContextValue {
   original: Lectura | null;
   form: UseFormReturn<LecturaFormValues>;
   calculo: Calculo;
+  /** Cada pantalla avisa cuál es al mostrarse, para reabrir el borrador en ese paso (R8). */
+  marcarPaso: (paso: PasoRegistro) => void;
+  /** Paso al que hay que avanzar al reanudar un borrador; se entrega una sola vez. */
+  tomarPasoAReanudar: () => PasoRegistro | null;
   /** Guarda (o corrige) la lectura validada en SQLite y devuelve su id local. */
   guardar: () => Promise<number>;
 }
@@ -69,28 +83,85 @@ function calcular(medidor: MedidorEnCache | null, v: LecturaFormValues): Calculo
 
 /**
  * Un solo formulario (react-hook-form + Zod) compartido por las pantallas del registro.
- * Vive en el layout del flujo, así los datos se conservan al avanzar o retroceder.
+ * Vive en el layout del flujo, así los datos se conservan al avanzar o retroceder,
+ * y se copia a SQLite en cada cambio para sobrevivir al cierre de la app (R8).
  */
 export function RegistroProvider({
   codigo,
   medidor,
   original,
+  borrador,
   children,
 }: {
   codigo: string;
   medidor: MedidorEnCache | null;
   original: Lectura | null;
+  /** Borrador que se reanuda; sus datos tienen prioridad sobre los de la lectura original. */
+  borrador: Borrador | null;
   children: ReactNode;
 }) {
   const db = useSQLiteContext();
   const { sesion } = useSession();
   const form = useForm<LecturaFormValues>({
     resolver: zodResolver(crearLecturaSchema(medidor)),
-    defaultValues: original ? valoresDe(original) : VALORES_INICIALES,
+    defaultValues: {
+      ...(original ? valoresDe(original) : VALORES_INICIALES),
+      ...borrador?.datos,
+    },
     mode: 'onTouched',
   });
 
   const calculo = calcular(medidor, form.watch());
+
+  // --- Borrador (R8) ---
+  const pasoActual = useRef<PasoRegistro>(borrador?.paso ?? 'estado');
+  const pasoAReanudar = useRef<PasoRegistro | null>(borrador?.paso ?? null);
+  // Solo hay borrador cuando el técnico cambió algo (o al reanudar uno existente).
+  const hayCambios = useRef(borrador !== null);
+  const terminado = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const persistir = () => {
+    clearTimeout(timer.current);
+    if (!hayCambios.current || terminado.current || !sesion) return;
+    guardarBorrador(db, {
+      codigoMedidor: codigo,
+      lecturaId: original?.id ?? null,
+      tecnicoCodigo: sesion.tecnico.codigo,
+      paso: pasoActual.current,
+      datos: form.getValues(),
+    });
+  };
+  // persistir solo lee refs y valores fijos durante el flujo (db, código, sesión).
+  useEffect(() => {
+    const cambios = form.watch(() => {
+      hayCambios.current = true;
+      clearTimeout(timer.current);
+      timer.current = setTimeout(persistir, DEBOUNCE_BORRADOR_MS);
+    });
+    // Al pasar a segundo plano (primer paso al quitar la app de recientes) se guarda ya.
+    const app = AppState.addEventListener('change', (estado) => {
+      if (estado !== 'active') persistir();
+    });
+    return () => {
+      cambios.unsubscribe();
+      app.remove();
+      clearTimeout(timer.current);
+    };
+  }, [form]);
+
+  // Estables (sin dependencias): las pantallas los usan en useFocusEffect.
+  // persistir solo lee refs y valores fijos durante el flujo.
+  const marcarPaso = useCallback((paso: PasoRegistro) => {
+    pasoActual.current = paso;
+    persistir();
+  }, []);
+
+  const tomarPasoAReanudar = useCallback(() => {
+    const paso = pasoAReanudar.current;
+    pasoAReanudar.current = null;
+    return paso;
+  }, []);
 
   const guardar = async () => {
     const v = form.getValues();
@@ -114,28 +185,45 @@ export function RegistroProvider({
       verificacion,
     };
 
+    let id: number;
     if (original) {
       await corregirLectura(db, original.id, datos);
       // La foto anterior se conserva hasta confirmar la corrección; recién ahí se borra.
       if (original.fotoUri !== v.fotoUri) eliminarFoto(original.fotoUri);
-      return original.id;
+      id = original.id;
+    } else {
+      const ahora = new Date();
+      const periodo = periodoDe(ahora);
+      id = await insertarLectura(db, {
+        ...datos,
+        registroId: nuevoRegistroId(),
+        clave: claveLectura(codigo, periodo),
+        codigoMedidor: codigo,
+        periodo,
+        tecnicoCodigo: sesion!.tecnico.codigo,
+        registradaEn: ahora.toISOString(),
+      });
     }
 
-    const ahora = new Date();
-    const periodo = periodoDe(ahora);
-    return insertarLectura(db, {
-      ...datos,
-      registroId: nuevoRegistroId(),
-      clave: claveLectura(codigo, periodo),
-      codigoMedidor: codigo,
-      periodo,
-      tecnicoCodigo: sesion!.tecnico.codigo,
-      registradaEn: ahora.toISOString(),
-    });
+    // Registro completo: el borrador ya no hace falta.
+    terminado.current = true;
+    clearTimeout(timer.current);
+    await eliminarBorrador(db);
+    return id;
   };
 
   return (
-    <RegistroContext value={{ codigo, medidor, original, form, calculo, guardar }}>
+    <RegistroContext
+      value={{
+        codigo,
+        medidor,
+        original,
+        form,
+        calculo,
+        marcarPaso,
+        tomarPasoAReanudar,
+        guardar,
+      }}>
       {children}
     </RegistroContext>
   );

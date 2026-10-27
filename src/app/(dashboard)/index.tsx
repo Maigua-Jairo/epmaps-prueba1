@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,7 +9,11 @@ import { Button, Card, Input } from '@/components/ui';
 import { esCodigoMedidorValido, LONGITUD_CODIGO_MEDIDOR } from '@/domain/medidor.rules';
 import { useMedidorSearch } from '@/hooks/useMedidorSearch';
 import { useSession } from '@/hooks/useSession';
+import { borradorDe } from '@/services/borradores';
 import { buscarDuplicado } from '@/services/duplicados';
+
+/** El aviso de borrador pendiente se muestra una vez por apertura de la app (R8). */
+let borradorOfrecido = false;
 
 /** Identificación y consulta del medidor (R2, R3). */
 export default function InicioScreen() {
@@ -38,10 +42,25 @@ export default function InicioScreen() {
     buscar(limpio);
   };
 
-  // R10: antes de empezar, se rechaza un segundo registro del mismo medidor en el mes.
+  // R8: al abrir la app, si quedó un registro a medias, se ofrece continuarlo o descartarlo.
+  useEffect(() => {
+    if (borradorOfrecido || !sesion) return;
+    borradorOfrecido = true;
+    borradorDe(db, sesion.tecnico.codigo).then((b) => {
+      if (b) router.push('/borrador-modal');
+    });
+  }, [db, sesion]);
+
   const registrar = async () => {
     const limpio = codigo.trim();
     setComprobando(true);
+    // Un registro a la vez: si hay uno a medias, primero se decide qué hacer con él (R8).
+    if (sesion && (await borradorDe(db, sesion.tecnico.codigo))) {
+      setComprobando(false);
+      router.push('/borrador-modal');
+      return;
+    }
+    // R10: se rechaza un segundo registro del mismo medidor en el mes.
     const duplicado = await buscarDuplicado(db, limpio, medidor);
     setComprobando(false);
 

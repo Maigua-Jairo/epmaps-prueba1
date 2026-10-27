@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Image, ScrollView, Text, View } from 'react-native';
 
 import { RegistroHeader } from '@/components/RegistroHeader';
@@ -24,7 +24,8 @@ function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
 
 /** Paso 4: revisión final y guardado en el teléfono (R4) o corrección (R10). */
 export default function ResumenScreen() {
-  const { medidor, original, form, calculo, guardar } = useRegistro();
+  const { medidor, original, form, calculo, guardar, marcarPaso } = useRegistro();
+  useFocusEffect(useCallback(() => marcarPaso('resumen'), [marcarPaso]));
   const { sincronizar } = useNetworkStatus();
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -1,4 +1,5 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect } from 'react';
 import { Controller } from 'react-hook-form';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -28,9 +29,28 @@ const OPCIONES: { estado: EstadoMedidor; titulo: string; detalle: string; color:
   },
 ];
 
+const SIGUIENTES_PASOS = [
+  { paso: 'datos', ruta: '/lectura/[codigo]/datos' },
+  { paso: 'foto', ruta: '/lectura/[codigo]/foto' },
+  { paso: 'resumen', ruta: '/lectura/[codigo]/resumen' },
+] as const;
+
 /** Paso 1: estado del medidor (R5). */
 export default function EstadoScreen() {
-  const { codigo, form } = useRegistro();
+  const { codigo, form, marcarPaso, tomarPasoAReanudar } = useRegistro();
+
+  useFocusEffect(useCallback(() => marcarPaso('estado'), [marcarPaso]));
+
+  // R8: al continuar un borrador se apilan las pantallas hasta el paso donde quedó,
+  // así "Volver" sigue recorriendo el flujo en orden.
+  useEffect(() => {
+    const destino = tomarPasoAReanudar();
+    if (!destino || destino === 'estado') return;
+    for (const { paso, ruta } of SIGUIENTES_PASOS) {
+      router.push({ pathname: ruta, params: { codigo } });
+      if (paso === destino) break;
+    }
+  }, [codigo, tomarPasoAReanudar]);
 
   const continuar = async () => {
     if (await form.trigger('estado')) {

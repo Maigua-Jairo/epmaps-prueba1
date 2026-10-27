@@ -1,4 +1,5 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { Controller } from 'react-hook-form';
 import { ScrollView, View } from 'react-native';
 
@@ -9,7 +10,8 @@ import { useRegistro } from '@/hooks/useLecturaForm';
 
 /** Paso 3: foto del medidor, obligatoria u opcional según R7. */
 export default function FotoScreen() {
-  const { codigo, original, form, calculo } = useRegistro();
+  const { codigo, original, form, calculo, marcarPaso } = useRegistro();
+  useFocusEffect(useCallback(() => marcarPaso('foto'), [marcarPaso]));
   const estado = form.watch('estado');
   const fotoUri = form.watch('fotoUri');
 

@@ -1,4 +1,5 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { Controller } from 'react-hook-form';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 
@@ -9,7 +10,8 @@ import { useRegistro } from '@/hooks/useLecturaForm';
 
 /** Paso 2: lectura, motivo o descripción según el estado (R5) y control de consumo (R6). */
 export default function DatosScreen() {
-  const { codigo, medidor, form, calculo } = useRegistro();
+  const { codigo, medidor, form, calculo, marcarPaso } = useRegistro();
+  useFocusEffect(useCallback(() => marcarPaso('datos'), [marcarPaso]));
   const estado = form.watch('estado');
   const pideLectura = estado !== 'INACCESIBLE';
 

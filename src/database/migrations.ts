@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-const DATABASE_VERSION = 4;
+const DATABASE_VERSION = 5;
 
 /** Aplica en orden las migraciones pendientes según PRAGMA user_version. */
 export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
@@ -67,6 +67,21 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
       ALTER TABLE lecturas ADD COLUMN revision INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE lecturas ADD COLUMN motivo_rechazo TEXT;
       UPDATE lecturas SET registro_id = 'v3-' || id WHERE registro_id IS NULL;
+    `);
+  }
+
+  if (currentVersion < 5) {
+    // v5: registro a medio llenar que sobrevive al cierre de la app (R8). Solo uno a la vez.
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS borrador (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        codigo_medidor TEXT NOT NULL,
+        lectura_id INTEGER,
+        tecnico_codigo TEXT NOT NULL,
+        paso TEXT NOT NULL,
+        datos TEXT NOT NULL,
+        actualizado_en TEXT NOT NULL
+      );
     `);
   }
 
