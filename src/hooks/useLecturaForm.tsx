@@ -188,8 +188,6 @@ export function RegistroProvider({
     let id: number;
     if (original) {
       await corregirLectura(db, original.id, datos);
-      // La foto anterior se conserva hasta confirmar la corrección; recién ahí se borra.
-      if (original.fotoUri !== v.fotoUri) eliminarFoto(original.fotoUri);
       id = original.id;
     } else {
       const ahora = new Date();
@@ -205,10 +203,16 @@ export function RegistroProvider({
       });
     }
 
-    // Registro completo: el borrador ya no hace falta.
+    // La lectura ya está guardada. La limpieza que sigue no debe hacer fallar el registro.
     terminado.current = true;
     clearTimeout(timer.current);
-    await eliminarBorrador(db);
+    try {
+      await eliminarBorrador(db);
+      // La foto anterior de una corrección se conserva hasta confirmarla; recién ahora se borra.
+      if (original && original.fotoUri !== v.fotoUri) eliminarFoto(original.fotoUri);
+    } catch (e) {
+      console.warn('Limpieza tras guardar la lectura', e);
+    }
     return id;
   };
 

@@ -34,22 +34,28 @@ export default function ResumenScreen() {
   const registrar = form.handleSubmit(async () => {
     setError(null);
     setGuardando(true);
+    let id: number;
     try {
-      const id = await guardar();
-      // Con señal se envía de inmediato; sin señal solo actualiza el contador de pendientes.
-      sincronizar();
-      router.replace({
-        pathname: '/lectura/exito',
-        params: { id: String(id), corregida: original ? '1' : '0' },
-      });
+      id = await guardar();
     } catch (e) {
+      console.error('No se pudo guardar la lectura', e);
       setError(
         e instanceof LecturaDuplicadaError || e instanceof LecturaYaEnviadaError
           ? e.message
-          : 'No se pudo guardar la lectura en el teléfono',
+          : `No se pudo guardar la lectura en el teléfono. Detalle: ${
+              e instanceof Error ? e.message : String(e)
+            }`,
       );
       setGuardando(false);
+      return;
     }
+    // Ya está guardada: lo que sigue no debe reportarse como un fallo al guardar.
+    // Con señal se envía de inmediato; sin señal solo actualiza el contador de pendientes.
+    sincronizar();
+    router.replace({
+      pathname: '/lectura/exito',
+      params: { id: String(id), corregida: original ? '1' : '0' },
+    });
   });
 
   return (
