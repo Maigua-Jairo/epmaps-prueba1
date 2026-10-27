@@ -52,6 +52,7 @@ export default function FotoScreen() {
         />
         <Button
           titulo={!fotoUri && !calculo.fotoObligatoria ? 'Continuar sin foto' : 'Continuar'}
+          icono="arrow-forward"
           disabled={!fotoUri && calculo.fotoObligatoria}
           onPress={continuar}
         />

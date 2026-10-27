@@ -1,22 +1,20 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FlatList, View } from 'react-native';
 
+import { Cabecera } from '@/components/Cabecera';
 import { LecturaItem } from '@/components/LecturaItem';
-import { Card } from '@/components/ui';
+import { Card, Icon, Text } from '@/components/ui';
 import { listarLecturasDeTecnico } from '@/database/repositories/lecturaRepository';
 import type { Lectura } from '@/domain/types';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useSession } from '@/hooks/useSession';
 import { borradorDe } from '@/services/borradores';
-import { volver } from '@/utils/navegacion';
 
 /** Lecturas registradas por el técnico; las pendientes se pueden corregir (R10). */
 export default function MisLecturasScreen() {
   const db = useSQLiteContext();
-  const { top } = useSafeAreaInsets();
   const { sesion } = useSession();
   const { ultimaSincronizacion } = useNetworkStatus();
   const [lecturas, setLecturas] = useState<Lectura[]>([]);
@@ -30,19 +28,11 @@ export default function MisLecturasScreen() {
 
   return (
     <View className="flex-1 bg-slate-100">
-      <View style={{ paddingTop: top + 8 }} className="rounded-b-[32px] bg-epmaps-primary px-5 pb-6">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Volver"
-          onPress={volver}
-          className="h-10 w-10 items-center justify-center rounded-full bg-white/15 active:bg-white/25">
-          <Text className="text-xl font-bold text-white">‹</Text>
-        </Pressable>
-        <Text className="mt-4 text-2xl font-extrabold text-white">Mis lecturas</Text>
-        <Text className="text-sm text-white/70">
-          Puedes corregir una lectura mientras no se haya enviado.
-        </Text>
-      </View>
+      <Cabecera
+        conVolver
+        titulo="Mis lecturas"
+        subtitulo="Puedes corregir una lectura mientras no se haya enviado."
+      />
 
       <FlatList
         data={lecturas}
@@ -65,8 +55,12 @@ export default function MisLecturasScreen() {
           />
         )}
         ListEmptyComponent={
-          <Card>
-            <Text className="text-center text-sm text-slate-500">Aún no registras lecturas.</Text>
+          <Card className="items-center gap-2 py-8">
+            <Icon name="clipboard-outline" size={36} color="#CBD5E1" />
+            <Text className="text-base font-bold text-slate-700">Aún no registras lecturas</Text>
+            <Text className="text-center text-sm text-slate-400">
+              Las lecturas que registres aparecerán aquí con su estado de envío.
+            </Text>
           </Card>
         }
       />

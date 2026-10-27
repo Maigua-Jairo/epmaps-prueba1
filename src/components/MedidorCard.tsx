@@ -1,9 +1,9 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import type { MedidorEnCache } from '@/domain/types';
 import type { OrigenMedidor } from '@/hooks/useMedidorSearch';
 
-import { Badge, Card } from './ui';
+import { Badge, Card, Icon, Text, type IconName } from './ui';
 
 const fecha = (iso: string) =>
   new Date(iso).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -11,22 +11,27 @@ const fecha = (iso: string) =>
 const hora = (iso: string) =>
   new Date(iso).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
 
-function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+function Dato({ icono, etiqueta, valor }: { icono: IconName; etiqueta: string; valor: string }) {
   return (
-    <View className="flex-row items-start justify-between gap-4 border-b border-slate-100 py-3">
-      <Text className="text-sm text-slate-500">{etiqueta}</Text>
-      <Text className="flex-1 text-right text-sm font-semibold text-slate-900">{valor}</Text>
+    <View className="flex-row items-center gap-3 border-b border-slate-100 py-3">
+      <View className="h-9 w-9 items-center justify-center rounded-xl bg-slate-50">
+        <Icon name={icono} size={18} color="#64748B" />
+      </View>
+      <View className="flex-1">
+        <Text className="text-xs font-semibold text-slate-400">{etiqueta}</Text>
+        <Text className="text-sm font-bold text-slate-900">{valor}</Text>
+      </View>
     </View>
   );
 }
 
 function Metrica({ etiqueta, valor, unidad }: { etiqueta: string; valor: number; unidad: string }) {
   return (
-    <View className="flex-1 rounded-2xl bg-sky-50 p-4">
-      <Text className="text-xs font-bold uppercase tracking-wider text-sky-700">{etiqueta}</Text>
-      <Text className="mt-1 text-2xl font-extrabold text-slate-900">
+    <View className="flex-1 rounded-2xl bg-epmaps-sky p-4">
+      <Text className="text-[11px] font-bold uppercase tracking-wider text-epmaps-primary">{etiqueta}</Text>
+      <Text className="mt-1 text-[26px] font-extrabold text-epmaps-navy">
         {valor.toLocaleString('es-EC')}
-        <Text className="text-sm font-semibold text-slate-500"> {unidad}</Text>
+        <Text className="text-sm font-bold text-slate-500"> {unidad}</Text>
       </Text>
     </View>
   );
@@ -39,9 +44,14 @@ export function MedidorCard({ medidor, origen }: { medidor: MedidorEnCache; orig
   return (
     <Card className="gap-4">
       <View className="flex-row items-center justify-between">
-        <View>
-          <Text className="text-xs font-bold uppercase tracking-wider text-slate-400">Medidor</Text>
-          <Text className="text-2xl font-extrabold tracking-tight text-slate-900">{medidor.codigo}</Text>
+        <View className="flex-row items-center gap-3">
+          <View className="h-12 w-12 items-center justify-center rounded-2xl bg-epmaps-primary">
+            <Icon name="speedometer" size={24} color="#FFFFFF" />
+          </View>
+          <View>
+            <Text className="text-xs font-bold uppercase tracking-wider text-slate-400">Medidor</Text>
+            <Text className="text-xl font-extrabold text-slate-900">{medidor.codigo}</Text>
+          </View>
         </View>
         <Badge texto={medidor.estado} tono={activo ? 'exito' : 'peligro'} />
       </View>
@@ -52,20 +62,24 @@ export function MedidorCard({ medidor, origen }: { medidor: MedidorEnCache; orig
       </View>
 
       <View>
-        <Dato etiqueta="Fecha última lectura" valor={fecha(medidor.fechaUltimaLectura)} />
-        <Dato etiqueta="Dirección" valor={medidor.direccion} />
-        <Dato etiqueta="Sector" valor={medidor.sector} />
-        <Dato etiqueta="N.º de cuenta" valor={medidor.numeroCuenta} />
+        <Dato icono="calendar-outline" etiqueta="Fecha de la última lectura" valor={fecha(medidor.fechaUltimaLectura)} />
+        <Dato icono="location-outline" etiqueta="Dirección" valor={medidor.direccion} />
+        <Dato icono="map-outline" etiqueta="Sector" valor={medidor.sector} />
+        <Dato icono="card-outline" etiqueta="Número de cuenta" valor={medidor.numeroCuenta} />
       </View>
 
-      <Badge
-        tono={origen === 'red' ? 'info' : 'advertencia'}
-        texto={
-          origen === 'red'
+      <View className="flex-row items-center gap-2">
+        <Icon
+          name={origen === 'red' ? 'cloud-download-outline' : 'phone-portrait-outline'}
+          size={16}
+          color={origen === 'red' ? '#0369A1' : '#B45309'}
+        />
+        <Text className={`flex-1 text-xs font-semibold ${origen === 'red' ? 'text-sky-700' : 'text-amber-700'}`}>
+          {origen === 'red'
             ? 'Descargado del sistema de la oficina'
-            : `Guardado en el teléfono · ${fecha(medidor.consultadoEn)} ${hora(medidor.consultadoEn)}`
-        }
-      />
+            : `Guardado en el teléfono · ${fecha(medidor.consultadoEn)} ${hora(medidor.consultadoEn)}`}
+        </Text>
+      </View>
     </Card>
   );
 }

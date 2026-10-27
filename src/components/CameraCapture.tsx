@@ -1,11 +1,11 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { Image, Text, View } from 'react-native';
+import { Image, View } from 'react-native';
 
 import { useCameraPermission } from '@/hooks/useCameraPermission';
 import { eliminarFoto, persistirFoto } from '@/services/imageStorage';
 
-import { Badge, Button, Card } from './ui';
+import { Badge, Button, Card, Icon, Text } from './ui';
 
 interface CameraCaptureProps {
   codigoMedidor: string;
@@ -66,7 +66,12 @@ export function CameraCapture({
     <View className="gap-4">
       <Card className="gap-3">
         <View className="flex-row items-center justify-between">
-          <Text className="text-lg font-bold text-slate-900">Foto del medidor</Text>
+          <View className="flex-row items-center gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-2xl bg-epmaps-sky">
+              <Icon name="camera-outline" size={22} color="#0067B1" />
+            </View>
+            <Text className="text-lg font-extrabold text-slate-900">Foto del medidor</Text>
+          </View>
           <Badge tono={obligatoria ? 'peligro' : 'info'} texto={obligatoria ? 'Obligatoria' : 'Opcional'} />
         </View>
         <Text className="text-sm text-slate-600">
@@ -85,31 +90,58 @@ export function CameraCapture({
             />
             <View className="flex-row gap-3">
               <View className="flex-1">
-                <Button titulo="Tomar otra" variante="secundario" cargando={capturando} onPress={tomarFoto} />
+                <Button
+                  titulo="Tomar otra"
+                  icono="camera-reverse-outline"
+                  variante="secundario"
+                  cargando={capturando}
+                  onPress={tomarFoto}
+                />
               </View>
               {!obligatoria ? (
                 <View className="flex-1">
-                  <Button titulo="Quitar foto" variante="secundario" onPress={quitarFoto} />
+                  <Button titulo="Quitar" icono="trash-outline" variante="secundario" onPress={quitarFoto} />
                 </View>
               ) : null}
             </View>
           </>
         ) : (
-          <Button
-            titulo={estado === 'bloqueado' ? 'Abrir Ajustes' : 'Tomar foto'}
-            cargando={capturando}
-            disabled={estado === 'cargando'}
-            onPress={estado === 'bloqueado' ? abrirAjustes : tomarFoto}
-          />
+          <>
+            <View
+              className={`items-center gap-2 rounded-2xl border-2 border-dashed py-8 ${
+                error ? 'border-red-300 bg-red-50/50' : 'border-slate-200 bg-slate-50'
+              }`}>
+              <Icon
+                name={sinPermiso ? 'videocam-off-outline' : 'scan-outline'}
+                size={40}
+                color={error ? '#F87171' : '#94A3B8'}
+              />
+              <Text className="text-sm font-semibold text-slate-400">
+                {sinPermiso ? 'Cámara sin permiso' : 'Encuadra el numerador del medidor'}
+              </Text>
+            </View>
+            <Button
+              titulo={estado === 'bloqueado' ? 'Abrir Ajustes' : 'Tomar foto'}
+              icono={estado === 'bloqueado' ? 'settings-outline' : 'camera'}
+              cargando={capturando}
+              disabled={estado === 'cargando'}
+              onPress={estado === 'bloqueado' ? abrirAjustes : tomarFoto}
+            />
+          </>
         )}
 
-        {errorCaptura ? <Text className="text-sm font-medium text-epmaps-danger">{errorCaptura}</Text> : null}
-        {error && !fotoUri ? <Text className="text-sm font-medium text-epmaps-danger">{error}</Text> : null}
+        {errorCaptura ? <Text className="text-sm font-semibold text-epmaps-danger">{errorCaptura}</Text> : null}
+        {error && !fotoUri ? <Text className="text-sm font-semibold text-epmaps-danger">{error}</Text> : null}
       </Card>
 
       {sinPermiso && !fotoUri ? (
         <Card className="gap-2 border-l-4 border-amber-500">
-          <Text className="font-bold text-slate-900">La app no tiene permiso para usar la cámara</Text>
+          <View className="flex-row items-center gap-2">
+            <Icon name="information-circle" size={20} color="#D97706" />
+            <Text className="flex-1 font-extrabold text-slate-900">
+              La app no tiene permiso para usar la cámara
+            </Text>
+          </View>
           <Text className="text-sm text-slate-600">
             Se necesita la cámara solo para fotografiar el medidor como respaldo de la lectura. No se
             usa para nada más.

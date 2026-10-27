@@ -1,4 +1,7 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+
+import { Icon } from './Icon';
+import { Text } from './Text';
 
 interface CheckboxProps {
   marcado: boolean;
@@ -19,7 +22,7 @@ export function Checkbox({ marcado, onCambiar, etiqueta, error }: CheckboxProps)
           className={`h-7 w-7 items-center justify-center rounded-lg border-2 ${
             marcado ? 'border-epmaps-primary bg-epmaps-primary' : error ? 'border-epmaps-danger bg-white' : 'border-slate-300 bg-white'
           }`}>
-          {marcado ? <Text className="text-base font-bold text-white">✓</Text> : null}
+          {marcado ? <Icon name="checkmark" size={18} color="#FFFFFF" /> : null}
         </View>
         <Text className="flex-1 text-base font-semibold text-slate-800">{etiqueta}</Text>
       </Pressable>

@@ -1,10 +1,10 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { Controller } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
 import { RegistroHeader } from '@/components/RegistroHeader';
-import { Button, Card, Checkbox, Input } from '@/components/ui';
+import { Button, Card, Checkbox, Icon, Input, Text } from '@/components/ui';
 import { FACTOR_ANOMALIA } from '@/domain/medidor.rules';
 import { useRegistro } from '@/hooks/useLecturaForm';
 
@@ -29,12 +29,17 @@ export default function DatosScreen() {
       <RegistroHeader paso={2} titulo="Datos de la lectura" />
       <ScrollView contentContainerClassName="gap-4 p-4 pb-10" keyboardShouldPersistTaps="handled">
         {!medidor ? (
-          <Card className="border-l-4 border-amber-500">
-            <Text className="font-bold text-slate-900">Sin datos del medidor</Text>
-            <Text className="mt-1 text-sm text-slate-600">
-              No hay señal y este medidor no se consultó antes. La lectura se guardará como pendiente
-              de verificar y el consumo se calculará al recuperar la conexión.
-            </Text>
+          <Card className="flex-row gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-2xl bg-amber-50">
+              <Icon name="cloud-offline-outline" size={22} color="#D97706" />
+            </View>
+            <View className="flex-1">
+              <Text className="font-extrabold text-slate-900">Sin datos del medidor</Text>
+              <Text className="mt-1 text-sm text-slate-600">
+                No hay señal y este medidor no se consultó antes. La lectura se guardará como
+                pendiente de verificar y el consumo se calculará al recuperar la conexión.
+              </Text>
+            </View>
           </Card>
         ) : null}
 
@@ -42,9 +47,12 @@ export default function DatosScreen() {
           {pideLectura ? (
             <>
               {medidor ? (
-                <View className="flex-row justify-between rounded-2xl bg-slate-50 px-4 py-3">
-                  <Text className="text-sm text-slate-500">Lectura anterior</Text>
-                  <Text className="text-sm font-bold text-slate-900">{medidor.ultimaLectura} m³</Text>
+                <View className="flex-row items-center gap-3 rounded-2xl bg-epmaps-sky px-4 py-3">
+                  <Icon name="time-outline" size={18} color="#0067B1" />
+                  <Text className="flex-1 text-sm font-semibold text-slate-600">Lectura anterior</Text>
+                  <Text className="text-base font-extrabold text-epmaps-navy">
+                    {medidor.ultimaLectura} m³
+                  </Text>
                 </View>
               ) : null}
               <Controller
@@ -53,6 +61,7 @@ export default function DatosScreen() {
                 render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
                   <Input
                     etiqueta={estado === 'DANADO' ? 'Lectura actual (opcional)' : 'Lectura actual (m³)'}
+                    icono="speedometer-outline"
                     placeholder="0"
                     keyboardType="number-pad"
                     value={value}
@@ -76,6 +85,7 @@ export default function DatosScreen() {
               render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
                 <Input
                   etiqueta="Motivo por el que es inaccesible"
+                  icono="lock-closed-outline"
                   placeholder="Ej. Perro suelto, caja bajo vehículo estacionado…"
                   multiline
                   value={value}
@@ -94,6 +104,7 @@ export default function DatosScreen() {
               render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
                 <Input
                   etiqueta="Descripción del daño"
+                  icono="construct-outline"
                   placeholder="Ej. Vidrio roto, numerador empañado…"
                   multiline
                   value={value}
@@ -126,7 +137,10 @@ export default function DatosScreen() {
 
             {calculo.esAnomalo ? (
               <View className="gap-3 rounded-2xl bg-amber-50 p-4">
-                <Text className="font-bold text-amber-900">⚠ Consumo anómalo</Text>
+                <View className="flex-row items-center gap-2">
+                  <Icon name="warning" size={20} color="#B45309" />
+                  <Text className="text-base font-extrabold text-amber-900">Consumo anómalo</Text>
+                </View>
                 <Text className="text-sm text-amber-900">
                   Supera {FACTOR_ANOMALIA} veces el promedio mensual. Revisa el medidor y confirma
                   que la lectura es correcta. La foto del medidor será obligatoria.
@@ -148,7 +162,7 @@ export default function DatosScreen() {
           </Card>
         ) : null}
 
-        <Button titulo="Continuar" onPress={continuar} />
+        <Button titulo="Continuar" icono="arrow-forward" onPress={continuar} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

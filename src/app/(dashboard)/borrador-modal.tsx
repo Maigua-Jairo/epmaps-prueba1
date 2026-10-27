@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Button } from '@/components/ui';
+import { Button, Icon, Text } from '@/components/ui';
 import type { Borrador, PasoRegistro } from '@/database/repositories/borradorRepository';
 import { useSession } from '@/hooks/useSession';
 import { borradorDe, descartarBorrador } from '@/services/borradores';
@@ -57,10 +57,10 @@ export default function BorradorModal() {
     : '';
 
   return (
-    <View className="flex-1 justify-center bg-black/60 p-6">
+    <View className="flex-1 justify-center bg-epmaps-navy/70 p-6">
       <View className="gap-5 rounded-[28px] bg-white p-6">
         <View className="h-14 w-14 items-center justify-center rounded-2xl bg-amber-100">
-          <Text className="text-2xl">📝</Text>
+          <Icon name="document-text" size={28} color="#B45309" />
         </View>
         <View className="gap-1">
           <Text className="text-2xl font-extrabold text-slate-900">Registro sin terminar</Text>
@@ -72,7 +72,10 @@ export default function BorradorModal() {
 
         {borrador ? (
           <View className="gap-2 rounded-2xl bg-slate-50 p-4">
-            <Text className="text-lg font-bold text-slate-900">{borrador.codigoMedidor}</Text>
+            <View className="flex-row items-center gap-2">
+              <Icon name="speedometer" size={18} color="#0067B1" />
+              <Text className="text-lg font-extrabold text-slate-900">{borrador.codigoMedidor}</Text>
+            </View>
             <Text className="text-sm text-slate-600">
               {borrador.lecturaId !== null ? 'Corrección de una lectura' : 'Lectura nueva'} · quedó en{' '}
               <Text className="font-semibold">{ETIQUETA_PASO[borrador.paso]}</Text>
@@ -89,8 +92,19 @@ export default function BorradorModal() {
         ) : null}
 
         <View className="gap-3">
-          <Button titulo="Continuar registro" disabled={!borrador} onPress={continuar} />
-          <Button titulo="Descartar" variante="peligro" cargando={descartando} onPress={descartar} />
+          <Button
+            titulo="Continuar registro"
+            icono="play-forward"
+            disabled={!borrador}
+            onPress={continuar}
+          />
+          <Button
+            titulo="Descartar"
+            icono="trash-outline"
+            variante="secundario"
+            cargando={descartando}
+            onPress={descartar}
+          />
         </View>
       </View>
     </View>
