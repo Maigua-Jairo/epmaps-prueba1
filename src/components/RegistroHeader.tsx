@@ -1,8 +1,8 @@
-import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useRegistro } from '@/hooks/useLecturaForm';
+import { volver } from '@/utils/navegacion';
 
 export const TOTAL_PASOS = 4;
 
@@ -17,7 +17,7 @@ export function RegistroHeader({ paso, titulo }: { paso: number; titulo: string 
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Volver"
-          onPress={() => router.back()}
+          onPress={volver}
           className="h-10 w-10 items-center justify-center rounded-full bg-white/15 active:bg-white/25">
           <Text className="text-xl font-bold text-white">‹</Text>
         </Pressable>

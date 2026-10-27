@@ -11,6 +11,7 @@ import type { Lectura } from '@/domain/types';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useSession } from '@/hooks/useSession';
 import { borradorDe } from '@/services/borradores';
+import { volver } from '@/utils/navegacion';
 
 /** Lecturas registradas por el técnico; las pendientes se pueden corregir (R10). */
 export default function MisLecturasScreen() {
@@ -33,7 +34,7 @@ export default function MisLecturasScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Volver"
-          onPress={() => router.back()}
+          onPress={volver}
           className="h-10 w-10 items-center justify-center rounded-full bg-white/15 active:bg-white/25">
           <Text className="text-xl font-bold text-white">‹</Text>
         </Pressable>

@@ -1,4 +1,4 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -10,6 +10,7 @@ import { obtenerMedidorEnCache } from '@/database/repositories/medidorRepository
 import type { Lectura, MedidorEnCache } from '@/domain/types';
 import { RegistroProvider } from '@/hooks/useLecturaForm';
 import { descartarBorrador } from '@/services/borradores';
+import { volver } from '@/utils/navegacion';
 
 interface Carga {
   medidor: MedidorEnCache | null;
@@ -64,7 +65,7 @@ export default function RegistroLayout() {
             Esta lectura ya se envió al sistema de la oficina. Solo se pueden corregir las lecturas
             que aún no se envían.
           </Text>
-          <Button titulo="Volver" variante="secundario" onPress={() => router.back()} />
+          <Button titulo="Volver" variante="secundario" onPress={volver} />
         </Card>
       </View>
     );

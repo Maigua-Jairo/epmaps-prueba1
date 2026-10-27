@@ -7,6 +7,7 @@ import { Button } from '@/components/ui';
 import type { Borrador, PasoRegistro } from '@/database/repositories/borradorRepository';
 import { useSession } from '@/hooks/useSession';
 import { borradorDe, descartarBorrador } from '@/services/borradores';
+import { volver } from '@/utils/navegacion';
 
 const ETIQUETA_PASO: Record<PasoRegistro, string> = {
   estado: 'Estado del medidor',
@@ -43,7 +44,7 @@ export default function BorradorModal() {
   const descartar = async () => {
     setDescartando(true);
     await descartarBorrador(db);
-    router.back();
+    volver();
   };
 
   const actualizado = borrador
