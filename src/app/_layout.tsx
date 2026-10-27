@@ -2,19 +2,23 @@ import '@/global.css';
 
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
+import { DATABASE_NAME, initDatabase } from '@/database/client';
 import { SessionProvider, useSession } from '@/hooks/useSession';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
-    <SessionProvider>
-      <StatusBar style="light" />
-      <RootNavigator />
-    </SessionProvider>
+    <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
+      <SessionProvider>
+        <StatusBar style="light" />
+        <RootNavigator />
+      </SessionProvider>
+    </SQLiteProvider>
   );
 }
 
