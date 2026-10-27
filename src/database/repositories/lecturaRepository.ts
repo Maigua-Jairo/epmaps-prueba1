@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type {
+  CorreccionLectura,
   EstadoEnvio,
   EstadoMedidor,
   Lectura,
@@ -16,8 +17,17 @@ export class LecturaDuplicadaError extends Error {
   }
 }
 
+/** Se intentó corregir una lectura que ya llegó a la oficina (R10). */
+export class LecturaYaEnviadaError extends Error {
+  constructor() {
+    super('Esta lectura ya se envió a la oficina y no se puede corregir');
+    this.name = 'LecturaYaEnviadaError';
+  }
+}
+
 interface LecturaRow {
   id: number;
+  registro_id: string;
   clave: string;
   codigo_medidor: string;
   periodo: string;
@@ -33,12 +43,15 @@ interface LecturaRow {
   foto_uri: string | null;
   verificacion: Verificacion;
   estado_envio: EstadoEnvio;
+  motivo_rechazo: string | null;
+  revision: number;
   registrada_en: string;
 }
 
 function aLectura(row: LecturaRow): Lectura {
   return {
     id: row.id,
+    registroId: row.registro_id,
     clave: row.clave,
     codigoMedidor: row.codigo_medidor,
     periodo: row.periodo,
@@ -54,6 +67,8 @@ function aLectura(row: LecturaRow): Lectura {
     fotoUri: row.foto_uri,
     verificacion: row.verificacion,
     estadoEnvio: row.estado_envio,
+    motivoRechazo: row.motivo_rechazo,
+    revision: row.revision,
     registradaEn: row.registrada_en,
   };
 }
@@ -63,10 +78,11 @@ export async function insertarLectura(db: SQLiteDatabase, l: NuevaLectura): Prom
   try {
     const result = await db.runAsync(
       `INSERT INTO lecturas
-         (clave, codigo_medidor, periodo, tecnico_codigo, estado_medidor, lectura,
+         (registro_id, clave, codigo_medidor, periodo, tecnico_codigo, estado_medidor, lectura,
           lectura_anterior, consumo, consumo_promedio, es_anomalo, revision_confirmada,
           observacion, foto_uri, verificacion, registrada_en)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      l.registroId,
       l.clave,
       l.codigoMedidor,
       l.periodo,
@@ -85,6 +101,7 @@ export async function insertarLectura(db: SQLiteDatabase, l: NuevaLectura): Prom
     );
     return result.lastInsertRowId;
   } catch (e) {
+    // La clave medidor_mes es UNIQUE: un segundo registro del mismo mes se rechaza (R10).
     if (e instanceof Error && e.message.includes('UNIQUE constraint failed')) {
       throw new LecturaDuplicadaError(l.codigoMedidor);
     }
@@ -92,9 +109,59 @@ export async function insertarLectura(db: SQLiteDatabase, l: NuevaLectura): Prom
   }
 }
 
+/**
+ * Corrige una lectura solo si sigue pendiente (R10). La condición va en el mismo
+ * UPDATE, así no hay forma de corregir una lectura que se envió hace un instante.
+ */
+export async function corregirLectura(
+  db: SQLiteDatabase,
+  id: number,
+  c: CorreccionLectura,
+): Promise<void> {
+  const result = await db.runAsync(
+    `UPDATE lecturas
+       SET estado_medidor = ?, lectura = ?, lectura_anterior = ?, consumo = ?, consumo_promedio = ?,
+           es_anomalo = ?, revision_confirmada = ?, observacion = ?, foto_uri = ?, verificacion = ?,
+           revision = revision + 1
+     WHERE id = ? AND estado_envio = 'PENDIENTE'`,
+    c.estadoMedidor,
+    c.lectura,
+    c.lecturaAnterior,
+    c.consumo,
+    c.consumoPromedio,
+    c.esAnomalo ? 1 : 0,
+    c.revisionConfirmada ? 1 : 0,
+    c.observacion,
+    c.fotoUri,
+    c.verificacion,
+    id,
+  );
+  if (result.changes === 0) throw new LecturaYaEnviadaError();
+}
+
 export async function obtenerLectura(db: SQLiteDatabase, id: number): Promise<Lectura | null> {
   const row = await db.getFirstAsync<LecturaRow>('SELECT * FROM lecturas WHERE id = ?', id);
   return row ? aLectura(row) : null;
+}
+
+export async function obtenerLecturaPorClave(
+  db: SQLiteDatabase,
+  clave: string,
+): Promise<Lectura | null> {
+  const row = await db.getFirstAsync<LecturaRow>('SELECT * FROM lecturas WHERE clave = ?', clave);
+  return row ? aLectura(row) : null;
+}
+
+/** Lecturas del técnico, de la más reciente a la más antigua. */
+export async function listarLecturasDeTecnico(
+  db: SQLiteDatabase,
+  tecnicoCodigo: string,
+): Promise<Lectura[]> {
+  const rows = await db.getAllAsync<LecturaRow>(
+    'SELECT * FROM lecturas WHERE tecnico_codigo = ? ORDER BY registrada_en DESC',
+    tecnicoCodigo,
+  );
+  return rows.map(aLectura);
 }
 
 /** Cola de envío en el orden en que se registraron (R9). */
@@ -134,11 +201,30 @@ export async function guardarVerificacion(
   );
 }
 
-export async function marcarEnviada(db: SQLiteDatabase, id: number, idRemoto: string): Promise<void> {
+/**
+ * Marca como enviada la versión que se envió. Si el técnico la corrigió mientras
+ * tanto (revision distinta), queda pendiente y el próximo ciclo envía la corrección.
+ */
+export async function marcarEnviada(
+  db: SQLiteDatabase,
+  id: number,
+  revision: number,
+  idRemoto: string,
+): Promise<void> {
   await db.runAsync(
-    `UPDATE lecturas SET estado_envio = 'ENVIADA', id_remoto = ?, enviada_en = ? WHERE id = ?`,
+    `UPDATE lecturas SET estado_envio = 'ENVIADA', id_remoto = ?, enviada_en = ?
+     WHERE id = ? AND revision = ?`,
     idRemoto,
     new Date().toISOString(),
+    id,
+    revision,
+  );
+}
+
+export async function marcarRechazada(db: SQLiteDatabase, id: number, motivo: string): Promise<void> {
+  await db.runAsync(
+    `UPDATE lecturas SET estado_envio = 'RECHAZADA', motivo_rechazo = ? WHERE id = ?`,
+    motivo,
     id,
   );
 }

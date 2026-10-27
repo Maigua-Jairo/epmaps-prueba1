@@ -4,7 +4,10 @@ import { Image, ScrollView, Text, View } from 'react-native';
 
 import { RegistroHeader } from '@/components/RegistroHeader';
 import { Badge, Button, Card } from '@/components/ui';
-import { LecturaDuplicadaError } from '@/database/repositories/lecturaRepository';
+import {
+  LecturaDuplicadaError,
+  LecturaYaEnviadaError,
+} from '@/database/repositories/lecturaRepository';
 import { useRegistro } from '@/hooks/useLecturaForm';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
@@ -19,9 +22,9 @@ function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   );
 }
 
-/** Paso 3: revisión final y guardado en el teléfono (R4). */
+/** Paso 4: revisión final y guardado en el teléfono (R4) o corrección (R10). */
 export default function ResumenScreen() {
-  const { medidor, form, calculo, guardar } = useRegistro();
+  const { medidor, original, form, calculo, guardar } = useRegistro();
   const { sincronizar } = useNetworkStatus();
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,10 +37,15 @@ export default function ResumenScreen() {
       const id = await guardar();
       // Con señal se envía de inmediato; sin señal solo actualiza el contador de pendientes.
       sincronizar();
-      router.replace({ pathname: '/lectura/exito', params: { id: String(id) } });
+      router.replace({
+        pathname: '/lectura/exito',
+        params: { id: String(id), corregida: original ? '1' : '0' },
+      });
     } catch (e) {
       setError(
-        e instanceof LecturaDuplicadaError ? e.message : 'No se pudo guardar la lectura en el teléfono',
+        e instanceof LecturaDuplicadaError || e instanceof LecturaYaEnviadaError
+          ? e.message
+          : 'No se pudo guardar la lectura en el teléfono',
       );
       setGuardando(false);
     }
@@ -45,7 +53,7 @@ export default function ResumenScreen() {
 
   return (
     <View className="flex-1 bg-slate-100">
-      <RegistroHeader paso={4} titulo="Confirmar registro" />
+      <RegistroHeader paso={4} titulo={original ? 'Confirmar corrección' : 'Confirmar registro'} />
       <ScrollView contentContainerClassName="gap-4 p-4 pb-10">
         <Card>
           <Fila etiqueta="Estado del medidor" valor={ETIQUETA_ESTADO[v.estado]} />
@@ -92,7 +100,11 @@ export default function ResumenScreen() {
           </View>
         ) : null}
 
-        <Button titulo="Registrar lectura" cargando={guardando} onPress={() => registrar()} />
+        <Button
+          titulo={original ? 'Guardar corrección' : 'Registrar lectura'}
+          cargando={guardando}
+          onPress={() => registrar()}
+        />
       </ScrollView>
     </View>
   );

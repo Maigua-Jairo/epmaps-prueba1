@@ -15,6 +15,8 @@ interface CameraCaptureProps {
   motivoObligatoria: string | null;
   onCambiar: (uri: string | null) => void;
   error?: string;
+  /** Foto de la lectura que se corrige: no se borra hasta guardar la corrección. */
+  fotoProtegida?: string | null;
 }
 
 /** Foto del medidor con la cámara del sistema y manejo del permiso denegado (R7). */
@@ -25,6 +27,7 @@ export function CameraCapture({
   motivoObligatoria,
   onCambiar,
   error,
+  fotoProtegida = null,
 }: CameraCaptureProps) {
   const { estado, solicitar, abrirAjustes } = useCameraPermission();
   const [capturando, setCapturando] = useState(false);
@@ -39,7 +42,7 @@ export function CameraCapture({
       const resultado = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.6 });
       if (resultado.canceled) return;
       const nueva = await persistirFoto(resultado.assets[0].uri, codigoMedidor);
-      eliminarFoto(fotoUri);
+      descartar(fotoUri);
       onCambiar(nueva);
     } catch {
       setErrorCaptura('No se pudo guardar la foto. Inténtalo de nuevo.');
@@ -48,8 +51,12 @@ export function CameraCapture({
     }
   };
 
+  const descartar = (uri: string | null) => {
+    if (uri !== fotoProtegida) eliminarFoto(uri);
+  };
+
   const quitarFoto = () => {
-    eliminarFoto(fotoUri);
+    descartar(fotoUri);
     onCambiar(null);
   };
 

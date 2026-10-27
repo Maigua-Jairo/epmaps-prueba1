@@ -3,16 +3,18 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, use, type ReactNode } from 'react';
 import { useForm, type DefaultValues, type UseFormReturn } from 'react-hook-form';
 
-import { insertarLectura } from '@/database/repositories/lecturaRepository';
+import { corregirLectura, insertarLectura } from '@/database/repositories/lecturaRepository';
 import {
   calcularConsumo,
   claveLectura,
   esConsumoAnomalo,
   fotoEsObligatoria,
+  nuevoRegistroId,
   periodoDe,
 } from '@/domain/medidor.rules';
 import { crearLecturaSchema, type LecturaFormValues } from '@/domain/medidor.schema';
-import type { MedidorEnCache, Verificacion } from '@/domain/types';
+import type { Lectura, MedidorEnCache, Verificacion } from '@/domain/types';
+import { eliminarFoto } from '@/services/imageStorage';
 import { hayConexion } from '@/services/networkService';
 
 import { useSession } from './useSession';
@@ -28,15 +30,17 @@ interface Calculo {
 interface RegistroContextValue {
   codigo: string;
   medidor: MedidorEnCache | null;
+  /** Lectura que se está corrigiendo (R10); null en un registro nuevo. */
+  original: Lectura | null;
   form: UseFormReturn<LecturaFormValues>;
   calculo: Calculo;
-  /** Guarda la lectura validada en SQLite y devuelve su id local. */
+  /** Guarda (o corrige) la lectura validada en SQLite y devuelve su id local. */
   guardar: () => Promise<number>;
 }
 
 const RegistroContext = createContext<RegistroContextValue | null>(null);
 
-// El estado arranca sin elegir: el técnico debe seleccionarlo en el primer paso.
+// En un registro nuevo el estado arranca sin elegir: el técnico debe seleccionarlo.
 const VALORES_INICIALES: DefaultValues<LecturaFormValues> = {
   lectura: '',
   motivo: '',
@@ -44,6 +48,17 @@ const VALORES_INICIALES: DefaultValues<LecturaFormValues> = {
   revisionConfirmada: false,
   fotoUri: null,
 };
+
+function valoresDe(l: Lectura): LecturaFormValues {
+  return {
+    estado: l.estadoMedidor,
+    lectura: l.lectura !== null ? String(l.lectura) : '',
+    motivo: l.estadoMedidor === 'INACCESIBLE' ? (l.observacion ?? '') : '',
+    descripcion: l.estadoMedidor === 'DANADO' ? (l.observacion ?? '') : '',
+    revisionConfirmada: l.revisionConfirmada,
+    fotoUri: l.fotoUri,
+  };
+}
 
 function calcular(medidor: MedidorEnCache | null, v: LecturaFormValues): Calculo {
   const lectura = v.estado !== 'INACCESIBLE' && /^\d+$/.test(v.lectura) ? Number(v.lectura) : null;
@@ -59,17 +74,19 @@ function calcular(medidor: MedidorEnCache | null, v: LecturaFormValues): Calculo
 export function RegistroProvider({
   codigo,
   medidor,
+  original,
   children,
 }: {
   codigo: string;
   medidor: MedidorEnCache | null;
+  original: Lectura | null;
   children: ReactNode;
 }) {
   const db = useSQLiteContext();
   const { sesion } = useSession();
   const form = useForm<LecturaFormValues>({
     resolver: zodResolver(crearLecturaSchema(medidor)),
-    defaultValues: VALORES_INICIALES,
+    defaultValues: original ? valoresDe(original) : VALORES_INICIALES,
     mode: 'onTouched',
   });
 
@@ -78,18 +95,12 @@ export function RegistroProvider({
   const guardar = async () => {
     const v = form.getValues();
     const { lectura, consumo, esAnomalo } = calcular(medidor, v);
-    const ahora = new Date();
-    const periodo = periodoDe(ahora);
 
     // R4: sin señal o sin datos del medidor, la comparación queda para cuando haya conexión.
     const verificacion: Verificacion =
       medidor && (await hayConexion()) ? 'VERIFICADA' : 'PENDIENTE_VERIFICAR';
 
-    return insertarLectura(db, {
-      clave: claveLectura(codigo, periodo),
-      codigoMedidor: codigo,
-      periodo,
-      tecnicoCodigo: sesion!.tecnico.codigo,
+    const datos = {
       estadoMedidor: v.estado,
       lectura,
       lecturaAnterior: medidor?.ultimaLectura ?? null,
@@ -101,12 +112,32 @@ export function RegistroProvider({
         v.estado === 'INACCESIBLE' ? v.motivo.trim() : v.estado === 'DANADO' ? v.descripcion.trim() : null,
       fotoUri: v.fotoUri,
       verificacion,
+    };
+
+    if (original) {
+      await corregirLectura(db, original.id, datos);
+      // La foto anterior se conserva hasta confirmar la corrección; recién ahí se borra.
+      if (original.fotoUri !== v.fotoUri) eliminarFoto(original.fotoUri);
+      return original.id;
+    }
+
+    const ahora = new Date();
+    const periodo = periodoDe(ahora);
+    return insertarLectura(db, {
+      ...datos,
+      registroId: nuevoRegistroId(),
+      clave: claveLectura(codigo, periodo),
+      codigoMedidor: codigo,
+      periodo,
+      tecnicoCodigo: sesion!.tecnico.codigo,
       registradaEn: ahora.toISOString(),
     });
   };
 
   return (
-    <RegistroContext value={{ codigo, medidor, form, calculo, guardar }}>{children}</RegistroContext>
+    <RegistroContext value={{ codigo, medidor, original, form, calculo, guardar }}>
+      {children}
+    </RegistroContext>
   );
 }
 

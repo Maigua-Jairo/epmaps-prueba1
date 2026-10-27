@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +9,7 @@ import { Button, Card, Input } from '@/components/ui';
 import { esCodigoMedidorValido, LONGITUD_CODIGO_MEDIDOR } from '@/domain/medidor.rules';
 import { useMedidorSearch } from '@/hooks/useMedidorSearch';
 import { useSession } from '@/hooks/useSession';
+import { buscarDuplicado } from '@/services/duplicados';
 
 /** Identificación y consulta del medidor (R2, R3). */
 export default function InicioScreen() {
@@ -16,6 +18,8 @@ export default function InicioScreen() {
   const { medidor, origen, cargando, error, sinConexion, buscar, limpiar } = useMedidorSearch();
   const [codigo, setCodigo] = useState('');
   const [errorCodigo, setErrorCodigo] = useState<string | null>(null);
+  const [comprobando, setComprobando] = useState(false);
+  const db = useSQLiteContext();
 
   const cambiarCodigo = (texto: string) => {
     setCodigo(texto.toUpperCase());
@@ -34,8 +38,33 @@ export default function InicioScreen() {
     buscar(limpio);
   };
 
-  const registrar = () => {
-    router.push({ pathname: '/lectura/[codigo]', params: { codigo: codigo.trim() } });
+  // R10: antes de empezar, se rechaza un segundo registro del mismo medidor en el mes.
+  const registrar = async () => {
+    const limpio = codigo.trim();
+    setComprobando(true);
+    const duplicado = await buscarDuplicado(db, limpio, medidor);
+    setComprobando(false);
+
+    if (!duplicado) {
+      router.push({ pathname: '/lectura/[codigo]', params: { codigo: limpio } });
+      return;
+    }
+    const corregible = duplicado.lecturaLocal?.estadoEnvio === 'PENDIENTE';
+    Alert.alert('Lectura ya registrada este mes', duplicado.motivo, [
+      { text: 'Entendido', style: 'cancel' },
+      ...(corregible
+        ? [
+            {
+              text: 'Corregir',
+              onPress: () =>
+                router.push({
+                  pathname: '/lectura/[codigo]',
+                  params: { codigo: limpio, id: String(duplicado.lecturaLocal!.id) },
+                }),
+            },
+          ]
+        : []),
+    ]);
   };
 
   const confirmarCierre = () => {
@@ -54,12 +83,20 @@ export default function InicioScreen() {
             <Text className="text-2xl font-bold text-white">{sesion?.tecnico.nombre}</Text>
             <Text className="text-sm font-medium text-white/70">{sesion?.tecnico.codigo}</Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            onPress={confirmarCierre}
-            className="rounded-full bg-white/15 px-4 py-2 active:bg-white/25">
-            <Text className="text-sm font-semibold text-white">Salir</Text>
-          </Pressable>
+          <View className="gap-2">
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push('/lecturas')}
+              className="rounded-full bg-white px-4 py-2 active:opacity-80">
+              <Text className="text-sm font-bold text-epmaps-primary">Mis lecturas</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={confirmarCierre}
+              className="items-center rounded-full bg-white/15 px-4 py-2 active:bg-white/25">
+              <Text className="text-sm font-semibold text-white">Salir</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
 
@@ -101,7 +138,12 @@ export default function InicioScreen() {
             </View>
             {/* R4: sin señal se puede registrar de todos modos. */}
             {sinConexion ? (
-              <Button titulo="Registrar sin datos del medidor" variante="secundario" onPress={registrar} />
+              <Button
+                titulo="Registrar sin datos del medidor"
+                variante="secundario"
+                cargando={comprobando}
+                onPress={registrar}
+              />
             ) : null}
           </Card>
         ) : null}
@@ -109,7 +151,7 @@ export default function InicioScreen() {
         {medidor && origen ? (
           <>
             <MedidorCard medidor={medidor} origen={origen} />
-            <Button titulo="Registrar lectura" onPress={registrar} />
+            <Button titulo="Registrar lectura" cargando={comprobando} onPress={registrar} />
           </>
         ) : null}
       </ScrollView>

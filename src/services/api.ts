@@ -40,6 +40,7 @@ export async function fetchMedidor(codigo: string): Promise<Medidor | null> {
 interface LecturaRemota {
   id: string;
   clave: string;
+  registroId?: string;
 }
 
 /** Lectura ya registrada en la oficina con esa clave (medidor + mes), o null. */
@@ -53,6 +54,7 @@ export async function buscarLecturaRemota(clave: string): Promise<LecturaRemota 
 
 function cuerpoLectura(l: Lectura): string {
   return JSON.stringify({
+    registroId: l.registroId,
     clave: l.clave,
     codigoMedidor: l.codigoMedidor,
     periodo: l.periodo,

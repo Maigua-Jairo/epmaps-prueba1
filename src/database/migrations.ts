@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-const DATABASE_VERSION = 3;
+const DATABASE_VERSION = 4;
 
 /** Aplica en orden las migraciones pendientes según PRAGMA user_version. */
 export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
@@ -57,6 +57,16 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
     await db.execAsync(`
       ALTER TABLE lecturas ADD COLUMN id_remoto TEXT;
       ALTER TABLE lecturas ADD COLUMN enviada_en TEXT;
+    `);
+  }
+
+  if (currentVersion < 4) {
+    // v4: corrección de lecturas pendientes y rechazo de duplicados (R10).
+    await db.execAsync(`
+      ALTER TABLE lecturas ADD COLUMN registro_id TEXT;
+      ALTER TABLE lecturas ADD COLUMN revision INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE lecturas ADD COLUMN motivo_rechazo TEXT;
+      UPDATE lecturas SET registro_id = 'v3-' || id WHERE registro_id IS NULL;
     `);
   }
 

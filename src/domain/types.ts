@@ -37,10 +37,17 @@ export type EstadoMedidor = 'NORMAL' | 'INACCESIBLE' | 'DANADO';
  */
 export type Verificacion = 'VERIFICADA' | 'PENDIENTE_VERIFICAR' | 'REQUIERE_REVISION';
 
-export type EstadoEnvio = 'PENDIENTE' | 'ENVIADA';
+/**
+ * - PENDIENTE: en el teléfono; se puede corregir (R10).
+ * - ENVIADA: llegó a la oficina; ya no se puede corregir (R10).
+ * - RECHAZADA: la oficina ya tenía otra lectura de ese medidor en ese mes (R10).
+ */
+export type EstadoEnvio = 'PENDIENTE' | 'ENVIADA' | 'RECHAZADA';
 
 export interface Lectura {
   id: number;
+  /** Identifica este registro concreto; distingue un reintento propio de un duplicado ajeno. */
+  registroId: string;
   /** codigo_periodo: identifica la lectura de un medidor en un mes (R9, R10). */
   clave: string;
   codigoMedidor: string;
@@ -59,7 +66,25 @@ export interface Lectura {
   fotoUri: string | null;
   verificacion: Verificacion;
   estadoEnvio: EstadoEnvio;
+  motivoRechazo: string | null;
+  /** Aumenta con cada corrección; evita marcar como enviada una versión ya corregida. */
+  revision: number;
   registradaEn: string;
 }
 
-export type NuevaLectura = Omit<Lectura, 'id' | 'estadoEnvio'>;
+export type NuevaLectura = Omit<Lectura, 'id' | 'estadoEnvio' | 'motivoRechazo' | 'revision'>;
+
+/** Campos que el técnico puede corregir mientras la lectura no se envíe (R10). */
+export type CorreccionLectura = Pick<
+  Lectura,
+  | 'estadoMedidor'
+  | 'lectura'
+  | 'lecturaAnterior'
+  | 'consumo'
+  | 'consumoPromedio'
+  | 'esAnomalo'
+  | 'revisionConfirmada'
+  | 'observacion'
+  | 'fotoUri'
+  | 'verificacion'
+>;

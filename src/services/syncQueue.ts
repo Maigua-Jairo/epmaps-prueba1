@@ -4,6 +4,7 @@ import {
   guardarVerificacion,
   listarPendientesDeEnvio,
   marcarEnviada,
+  marcarRechazada,
 } from '@/database/repositories/lecturaRepository';
 import { guardarMedidorEnCache } from '@/database/repositories/medidorRepository';
 import { calcularConsumo, esConsumoAnomalo } from '@/domain/medidor.rules';
@@ -58,17 +59,23 @@ async function verificar(db: SQLiteDatabase, l: Lectura): Promise<Lectura> {
 
 /**
  * Envío idempotente (R9): la clave medidor_mes identifica la lectura en la oficina.
- * Si la señal se corta después de que el POST llegó pero antes de recibir la
- * respuesta, el siguiente intento la encuentra por clave y no la vuelve a crear;
- * solo la actualiza con los datos actuales.
+ * - Si existe con el mismo registroId, es nuestra: el POST llegó pero la respuesta
+ *   se perdió al cortarse la señal. Se actualiza, no se duplica.
+ * - Si existe con otro registroId, otro registro ganó ese mes: se rechaza (R10).
  */
 async function enviar(db: SQLiteDatabase, l: Lectura): Promise<void> {
   const existente = await buscarLecturaRemota(l.clave);
-  if (existente) {
+  if (!existente) {
+    await marcarEnviada(db, l.id, l.revision, await crearLecturaRemota(l));
+  } else if (existente.registroId === l.registroId) {
     await actualizarLecturaRemota(existente.id, l);
-    await marcarEnviada(db, l.id, existente.id);
+    await marcarEnviada(db, l.id, l.revision, existente.id);
   } else {
-    await marcarEnviada(db, l.id, await crearLecturaRemota(l));
+    await marcarRechazada(
+      db,
+      l.id,
+      'El sistema de la oficina ya tenía una lectura de este medidor en este mes',
+    );
   }
 }
 

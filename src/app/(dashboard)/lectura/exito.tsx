@@ -13,7 +13,7 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 export default function ExitoScreen() {
   const db = useSQLiteContext();
   const { bottom } = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, corregida } = useLocalSearchParams<{ id: string; corregida?: string }>();
   const { ultimaSincronizacion } = useNetworkStatus();
   const [lectura, setLectura] = useState<Lectura | null>(null);
 
@@ -30,7 +30,9 @@ export default function ExitoScreen() {
             <Text className="text-3xl font-bold text-white">✓</Text>
           </View>
         </View>
-        <Text className="text-3xl font-extrabold text-white">Lectura registrada</Text>
+        <Text className="text-3xl font-extrabold text-white">
+          {corregida === '1' ? 'Lectura corregida' : 'Lectura registrada'}
+        </Text>
         <Text className="text-center text-base text-white/80">{lectura?.codigoMedidor}</Text>
 
         {lectura ? (
@@ -44,6 +46,8 @@ export default function ExitoScreen() {
             <View className="flex-row flex-wrap justify-center gap-2">
               {lectura.estadoEnvio === 'ENVIADA' ? (
                 <Badge tono="exito" texto="Enviada a la oficina" />
+              ) : lectura.estadoEnvio === 'RECHAZADA' ? (
+                <Badge tono="peligro" texto="Rechazada: ya existía la lectura del mes" />
               ) : (
                 <Badge tono="advertencia" texto="Pendiente de envío" />
               )}

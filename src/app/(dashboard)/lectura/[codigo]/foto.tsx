@@ -9,7 +9,7 @@ import { useRegistro } from '@/hooks/useLecturaForm';
 
 /** Paso 3: foto del medidor, obligatoria u opcional según R7. */
 export default function FotoScreen() {
-  const { codigo, form, calculo } = useRegistro();
+  const { codigo, original, form, calculo } = useRegistro();
   const estado = form.watch('estado');
   const fotoUri = form.watch('fotoUri');
 
@@ -44,6 +44,7 @@ export default function FotoScreen() {
                 if (uri) form.clearErrors('fotoUri');
               }}
               error={error?.message}
+              fotoProtegida={original?.fotoUri}
             />
           )}
         />

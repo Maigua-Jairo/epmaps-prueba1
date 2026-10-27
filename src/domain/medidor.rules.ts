@@ -40,3 +40,8 @@ export function periodoDe(fecha: Date): string {
 export function claveLectura(codigoMedidor: string, periodo: string): string {
   return `${codigoMedidor}_${periodo}`;
 }
+
+/** Identificador único de un registro; no necesita ser criptográfico. */
+export function nuevoRegistroId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
