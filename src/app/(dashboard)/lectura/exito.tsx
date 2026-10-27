@@ -7,17 +7,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Button, Card } from '@/components/ui';
 import { obtenerLectura } from '@/database/repositories/lecturaRepository';
 import type { Lectura } from '@/domain/types';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 /** Confirmación: la lectura quedó guardada en el teléfono y pendiente de envío. */
 export default function ExitoScreen() {
   const db = useSQLiteContext();
   const { bottom } = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { ultimaSincronizacion } = useNetworkStatus();
   const [lectura, setLectura] = useState<Lectura | null>(null);
 
+  // Se recarga al terminar cada sincronización para mostrar si ya se envió.
   useEffect(() => {
     obtenerLectura(db, Number(id)).then(setLectura);
-  }, [db, id]);
+  }, [db, id, ultimaSincronizacion]);
 
   return (
     <View style={{ paddingBottom: bottom + 16 }} className="flex-1 justify-between bg-epmaps-primary px-6">
@@ -39,9 +42,15 @@ export default function ExitoScreen() {
               </Text>
             ) : null}
             <View className="flex-row flex-wrap justify-center gap-2">
-              <Badge tono="advertencia" texto="Pendiente de envío" />
+              {lectura.estadoEnvio === 'ENVIADA' ? (
+                <Badge tono="exito" texto="Enviada a la oficina" />
+              ) : (
+                <Badge tono="advertencia" texto="Pendiente de envío" />
+              )}
               {lectura.verificacion === 'PENDIENTE_VERIFICAR' ? (
                 <Badge tono="info" texto="Pendiente de verificar" />
+              ) : lectura.verificacion === 'REQUIERE_REVISION' ? (
+                <Badge tono="peligro" texto="Requiere revisión" />
               ) : (
                 <Badge tono="exito" texto="Verificada con la lectura anterior" />
               )}

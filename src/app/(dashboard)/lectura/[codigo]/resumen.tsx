@@ -6,6 +6,7 @@ import { RegistroHeader } from '@/components/RegistroHeader';
 import { Badge, Button, Card } from '@/components/ui';
 import { LecturaDuplicadaError } from '@/database/repositories/lecturaRepository';
 import { useRegistro } from '@/hooks/useLecturaForm';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 const ETIQUETA_ESTADO = { NORMAL: 'Normal', INACCESIBLE: 'Inaccesible', DANADO: 'Dañado' } as const;
 
@@ -21,6 +22,7 @@ function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
 /** Paso 3: revisión final y guardado en el teléfono (R4). */
 export default function ResumenScreen() {
   const { medidor, form, calculo, guardar } = useRegistro();
+  const { sincronizar } = useNetworkStatus();
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const v = form.watch();
@@ -30,6 +32,8 @@ export default function ResumenScreen() {
     setGuardando(true);
     try {
       const id = await guardar();
+      // Con señal se envía de inmediato; sin señal solo actualiza el contador de pendientes.
+      sincronizar();
       router.replace({ pathname: '/lectura/exito', params: { id: String(id) } });
     } catch (e) {
       setError(

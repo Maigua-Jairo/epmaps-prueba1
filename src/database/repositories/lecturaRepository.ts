@@ -96,3 +96,49 @@ export async function obtenerLectura(db: SQLiteDatabase, id: number): Promise<Le
   const row = await db.getFirstAsync<LecturaRow>('SELECT * FROM lecturas WHERE id = ?', id);
   return row ? aLectura(row) : null;
 }
+
+/** Cola de envío en el orden en que se registraron (R9). */
+export async function listarPendientesDeEnvio(db: SQLiteDatabase): Promise<Lectura[]> {
+  const rows = await db.getAllAsync<LecturaRow>(
+    `SELECT * FROM lecturas WHERE estado_envio = 'PENDIENTE' ORDER BY registrada_en`,
+  );
+  return rows.map(aLectura);
+}
+
+export async function contarPendientesDeEnvio(db: SQLiteDatabase): Promise<number> {
+  const row = await db.getFirstAsync<{ total: number }>(
+    `SELECT COUNT(*) AS total FROM lecturas WHERE estado_envio = 'PENDIENTE'`,
+  );
+  return row?.total ?? 0;
+}
+
+/** Resultado de comparar una lectura pendiente de verificar con la anterior (R4). */
+export async function guardarVerificacion(
+  db: SQLiteDatabase,
+  id: number,
+  datos: Pick<
+    Lectura,
+    'lecturaAnterior' | 'consumo' | 'consumoPromedio' | 'esAnomalo' | 'verificacion'
+  >,
+): Promise<void> {
+  await db.runAsync(
+    `UPDATE lecturas
+       SET lectura_anterior = ?, consumo = ?, consumo_promedio = ?, es_anomalo = ?, verificacion = ?
+     WHERE id = ?`,
+    datos.lecturaAnterior,
+    datos.consumo,
+    datos.consumoPromedio,
+    datos.esAnomalo ? 1 : 0,
+    datos.verificacion,
+    id,
+  );
+}
+
+export async function marcarEnviada(db: SQLiteDatabase, id: number, idRemoto: string): Promise<void> {
+  await db.runAsync(
+    `UPDATE lecturas SET estado_envio = 'ENVIADA', id_remoto = ?, enviada_en = ? WHERE id = ?`,
+    idRemoto,
+    new Date().toISOString(),
+    id,
+  );
+}

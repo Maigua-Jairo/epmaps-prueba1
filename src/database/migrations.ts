@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-const DATABASE_VERSION = 2;
+const DATABASE_VERSION = 3;
 
 /** Aplica en orden las migraciones pendientes según PRAGMA user_version. */
 export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
@@ -49,6 +49,14 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
         estado_envio TEXT NOT NULL DEFAULT 'PENDIENTE',
         registrada_en TEXT NOT NULL
       );
+    `);
+  }
+
+  if (currentVersion < 3) {
+    // v3: datos del envío al sistema de la oficina (R9).
+    await db.execAsync(`
+      ALTER TABLE lecturas ADD COLUMN id_remoto TEXT;
+      ALTER TABLE lecturas ADD COLUMN enviada_en TEXT;
     `);
   }
 

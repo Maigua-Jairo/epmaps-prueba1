@@ -8,3 +8,8 @@ export function estaEnLinea(state: NetInfoState): boolean {
 export async function hayConexion(): Promise<boolean> {
   return estaEnLinea(await NetInfo.fetch());
 }
+
+/** Avisa cada cambio de conectividad (R9); se dispara también al suscribirse. */
+export function suscribirConexion(onCambio: (enLinea: boolean) => void): () => void {
+  return NetInfo.addEventListener((state) => onCambio(estaEnLinea(state)));
+}
