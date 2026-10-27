@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,7 +13,7 @@ import { useSession } from '@/hooks/useSession';
 export default function InicioScreen() {
   const { top } = useSafeAreaInsets();
   const { sesion, cerrarSesion } = useSession();
-  const { medidor, origen, cargando, error, buscar, limpiar } = useMedidorSearch();
+  const { medidor, origen, cargando, error, sinConexion, buscar, limpiar } = useMedidorSearch();
   const [codigo, setCodigo] = useState('');
   const [errorCodigo, setErrorCodigo] = useState<string | null>(null);
 
@@ -31,6 +32,10 @@ export default function InicioScreen() {
       return;
     }
     buscar(limpio);
+  };
+
+  const registrar = () => {
+    router.push({ pathname: '/lectura/[codigo]', params: { codigo: codigo.trim() } });
   };
 
   const confirmarCierre = () => {
@@ -89,13 +94,24 @@ export default function InicioScreen() {
         ) : null}
 
         {error ? (
-          <Card className="border-l-4 border-epmaps-danger">
-            <Text className="font-semibold text-slate-900">No se pudo mostrar el medidor</Text>
-            <Text className="mt-1 text-sm text-slate-600">{error}</Text>
+          <Card className="gap-3 border-l-4 border-epmaps-danger">
+            <View>
+              <Text className="font-semibold text-slate-900">No se pudo mostrar el medidor</Text>
+              <Text className="mt-1 text-sm text-slate-600">{error}</Text>
+            </View>
+            {/* R4: sin señal se puede registrar de todos modos. */}
+            {sinConexion ? (
+              <Button titulo="Registrar sin datos del medidor" variante="secundario" onPress={registrar} />
+            ) : null}
           </Card>
         ) : null}
 
-        {medidor && origen ? <MedidorCard medidor={medidor} origen={origen} /> : null}
+        {medidor && origen ? (
+          <>
+            <MedidorCard medidor={medidor} origen={origen} />
+            <Button titulo="Registrar lectura" onPress={registrar} />
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );

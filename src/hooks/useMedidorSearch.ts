@@ -24,6 +24,8 @@ export function useMedidorSearch() {
   const [origen, setOrigen] = useState<OrigenMedidor | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Sin señal y sin caché: se puede registrar igual sin datos del medidor (R4).
+  const [sinConexion, setSinConexion] = useState(false);
   // Identifica la búsqueda vigente: una respuesta que llega tarde no debe pisar la pantalla.
   const busquedaActual = useRef(0);
 
@@ -32,6 +34,7 @@ export function useMedidorSearch() {
     setMedidor(null);
     setOrigen(null);
     setError(null);
+    setSinConexion(false);
     setCargando(false);
   };
 
@@ -68,6 +71,7 @@ export function useMedidorSearch() {
           mostrar(enCache, 'cache');
         } else if (e instanceof SinConexionError) {
           fallar('Sin conexión y este medidor no se ha consultado antes en el teléfono');
+          if (vigente()) setSinConexion(true);
         } else {
           fallar(e instanceof Error ? e.message : 'No se pudo consultar el medidor');
         }
@@ -77,5 +81,5 @@ export function useMedidorSearch() {
     }
   };
 
-  return { medidor, origen, cargando, error, buscar, limpiar };
+  return { medidor, origen, cargando, error, sinConexion, buscar, limpiar };
 }

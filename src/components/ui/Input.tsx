@@ -20,7 +20,8 @@ export function Input({ etiqueta, error, onFocus, onBlur, ...rest }: InputProps)
       <TextInput
         accessibilityLabel={etiqueta}
         placeholderTextColor="#94A3B8"
-        className={`h-14 rounded-2xl border-2 bg-slate-50 px-4 text-base text-slate-900 ${borde}`}
+        textAlignVertical={rest.multiline ? 'top' : 'center'}
+        className={`rounded-2xl border-2 bg-slate-50 px-4 text-base text-slate-900 ${rest.multiline ? 'min-h-28 py-3' : 'h-14'} ${borde}`}
         onFocus={(e) => {
           setEnfocado(true);
           onFocus?.(e);
