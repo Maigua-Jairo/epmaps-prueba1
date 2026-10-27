@@ -1,6 +1,47 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-const DATABASE_VERSION = 5;
+const DATABASE_VERSION = 6;
+
+/** Columnas agregadas a `lecturas` después de la v2, con su definición. */
+const COLUMNAS_V3 = {
+  id_remoto: 'TEXT',
+  enviada_en: 'TEXT',
+};
+const COLUMNAS_V4 = {
+  registro_id: 'TEXT',
+  revision: 'INTEGER NOT NULL DEFAULT 0',
+  motivo_rechazo: 'TEXT',
+};
+
+const CREAR_BORRADOR = `
+  CREATE TABLE IF NOT EXISTS borrador (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    codigo_medidor TEXT NOT NULL,
+    lectura_id INTEGER,
+    tecnico_codigo TEXT NOT NULL,
+    paso TEXT NOT NULL,
+    datos TEXT NOT NULL,
+    actualizado_en TEXT NOT NULL
+  );
+`;
+
+/**
+ * Agrega solo las columnas que falten. SQLite no tiene ADD COLUMN IF NOT EXISTS,
+ * así que se consulta PRAGMA table_info; esto hace que la migración se pueda repetir.
+ */
+async function agregarColumnasFaltantes(
+  db: SQLiteDatabase,
+  tabla: string,
+  columnas: Record<string, string>,
+): Promise<void> {
+  const existentes = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${tabla})`);
+  const nombres = new Set(existentes.map((c) => c.name));
+  for (const [nombre, definicion] of Object.entries(columnas)) {
+    if (!nombres.has(nombre)) {
+      await db.execAsync(`ALTER TABLE ${tabla} ADD COLUMN ${nombre} ${definicion}`);
+    }
+  }
+}
 
 /** Aplica en orden las migraciones pendientes según PRAGMA user_version. */
 export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
@@ -54,36 +95,27 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
 
   if (currentVersion < 3) {
     // v3: datos del envío al sistema de la oficina (R9).
-    await db.execAsync(`
-      ALTER TABLE lecturas ADD COLUMN id_remoto TEXT;
-      ALTER TABLE lecturas ADD COLUMN enviada_en TEXT;
-    `);
+    await agregarColumnasFaltantes(db, 'lecturas', COLUMNAS_V3);
   }
 
   if (currentVersion < 4) {
     // v4: corrección de lecturas pendientes y rechazo de duplicados (R10).
-    await db.execAsync(`
-      ALTER TABLE lecturas ADD COLUMN registro_id TEXT;
-      ALTER TABLE lecturas ADD COLUMN revision INTEGER NOT NULL DEFAULT 0;
-      ALTER TABLE lecturas ADD COLUMN motivo_rechazo TEXT;
-      UPDATE lecturas SET registro_id = 'v3-' || id WHERE registro_id IS NULL;
-    `);
+    await agregarColumnasFaltantes(db, 'lecturas', COLUMNAS_V4);
   }
 
   if (currentVersion < 5) {
     // v5: registro a medio llenar que sobrevive al cierre de la app (R8). Solo uno a la vez.
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS borrador (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        codigo_medidor TEXT NOT NULL,
-        lectura_id INTEGER,
-        tecnico_codigo TEXT NOT NULL,
-        paso TEXT NOT NULL,
-        datos TEXT NOT NULL,
-        actualizado_en TEXT NOT NULL
-      );
-    `);
+    await db.execAsync(CREAR_BORRADOR);
   }
 
+  if (currentVersion < 6) {
+    // v6: reparación. Una base podía quedar marcada en v4/v5 sin sus columnas si la app
+    // se recargó en desarrollo a mitad de un cambio de esquema. Se completa lo que falte.
+    await agregarColumnasFaltantes(db, 'lecturas', { ...COLUMNAS_V3, ...COLUMNAS_V4 });
+    await db.execAsync(CREAR_BORRADOR);
+  }
+
+  // Lecturas anteriores a v4 necesitan un registro_id para el envío idempotente.
+  await db.execAsync(`UPDATE lecturas SET registro_id = 'v3-' || id WHERE registro_id IS NULL`);
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
 }
