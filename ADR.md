@@ -13,17 +13,16 @@
 
 | ADR | Decisión | Requisitos | Estado |
 |---|---|---|---|
-| [ADR-001](#adr-001) | [Completar] | [Completar] | [Completar] |
-| [ADR-002](#adr-002) | [Completar] | [Completar] | [Completar] |
-| [ADR-003](#adr-003) | [Completar] | [Completar] | [Completar] |
-| [ADR-004](#adr-004) | [Completar] | [Completar] | [Completar] |
-| [ADR-005](#adr-005) | [Completar] | [Completar] | [Completar] |
-| [ADR-006](#adr-006) | [Completar] | [Completar] | [Completar] |
-| [ADR-007](#adr-007) | [Completar] | [Completar] | [Completar] |
-| [ADR-008](#adr-008) | [Completar] | [Completar] | [Completar] |
-| [ADR-009](#adr-009) | [Completar] | [Completar] | [Completar] |
-| [ADR-010](#adr-010) | [Completar] | [Completar] | [Completar] |
-| [ADR-011](#adr-011) | [Completar] | [Completar] | [Completar] |
+| [ADR-001](#adr-001) | Usar Expo Router para la navegación y separar las rutas con y sin sesión | R1, R8 | Aceptado |
+| [ADR-002](#adr-002) | Guardar la sesión del técnico con `expo-secure-store` | R1 | Aceptado |
+| [ADR-003](#adr-003) | Usar `expo-sqlite` para los datos locales del teléfono | R3, R4, R8, R9, R10 | Aceptado |
+| [ADR-004](#adr-004) | Consultar la oficina con `fetch` nativo y reutilizar la caché de SQLite durante la jornada | R2, R3, R4 | Aceptado |
+| [ADR-005](#adr-005) | Compartir el estado entre pantallas con React Context y un formulario único en el layout del registro | R5, R6, R8, R9 | Aceptado |
+| [ADR-006](#adr-006) | Validar el formulario con Zod y el código del medidor con una expresión regular | R2, R5, R6, R7 | Aceptado |
+| [ADR-007](#adr-007) | Manejar el formulario de lectura con `react-hook-form` | R5, R6, R7 | Aceptado |
+| [ADR-008](#adr-008) | Capturar la foto con `expo-image-picker` y conservarla con `expo-file-system` | R7 | Aceptado |
+| [ADR-009](#adr-009) | Detectar la conexión con NetInfo y enviar con una cola idempotente por clave medidor-mes | R4, R9, R10 | Aceptado |
+| [ADR-010](#adr-010) | Usar NativeWind para los estilos | Diseño no genérico (sanción del enunciado) | Aceptado |
 
 ---
 
@@ -34,18 +33,17 @@ Expo al generar el proyecto. Marca en qué ADR justificas cada una.
 
 | Dependencia | ¿La trae la plantilla de Expo SDK 57? | Justificada en |
 |---|---|---|
-| `expo-secure-store` | No | [ADR-0XX] |
-| `expo-sqlite` | No | [ADR-0XX] |
-| `@react-native-community/netinfo` | No | [ADR-0XX] |
-| `expo-image-picker` | No | [ADR-0XX] |
-| `expo-file-system` | No | [ADR-0XX] |
-| `zod` | No | [ADR-0XX] |
-| `react-hook-form` | No | [ADR-0XX] |
-| `@hookform/resolvers` | No | [ADR-0XX] |
-| `nativewind` | No | [ADR-0XX] |
-| `tailwindcss` (dev) | No | [ADR-0XX] |
-| `babel-preset-expo` | No (viene anidado dentro de `expo`) | [ADR-0XX] |
-| `@react-native-vector-icons/ionicons` | No | [ADR-0XX] |
+| `expo-secure-store` | No | [ADR-002](#adr-002) |
+| `expo-sqlite` | No | [ADR-003](#adr-003) |
+| `@react-native-community/netinfo` | No | [ADR-009](#adr-009) |
+| `expo-image-picker` | No | [ADR-008](#adr-008) |
+| `expo-file-system` | No | [ADR-008](#adr-008) |
+| `zod` | No | [ADR-006](#adr-006) |
+| `react-hook-form` | No | [ADR-007](#adr-007) |
+| `@hookform/resolvers` | No | [ADR-007](#adr-007) (conecta `react-hook-form` con Zod) |
+| `nativewind` | No | [ADR-010](#adr-010) |
+| `tailwindcss` (dev) | No | [ADR-010](#adr-010) |
+| `babel-preset-expo` | No (viene anidado dentro de `expo`) | [ADR-010](#adr-010) (NativeWind exige declararlo en `babel.config.js`) |
 | `expo-font` | Sí | No requiere ADR |
 | `react-dom` | Sí | No requiere ADR |
 | `expo`, `expo-router`, `expo-constants`, `expo-linking`, `expo-splash-screen`, `expo-status-bar`, `react`, `react-native`, `react-native-reanimated`, `react-native-worklets`, `react-native-safe-area-context`, `react-native-screens`, `typescript`, `@types/react` | Sí | No requiere ADR |
@@ -482,49 +480,6 @@ diseño genérico]
 
 *¿Por qué el diseño importa en esta prueba? ¿Cómo se mantiene consistente entre pantallas (colores,
 tipografía, espaciados)? ¿Qué dependencias extra exige la opción elegida?*
-
-### Alternativas consideradas
-
-| Alternativa | Ventajas en este proyecto | Desventajas en este proyecto |
-|---|---|---|
-| [Opción A] | [Completar] | [Completar] |
-| [Opción B] | [Completar] | [Completar] |
-
-### Decisión
-
-[Completar]
-
-### Consecuencias
-
-- [Completar]
-- [Desventaja o riesgo]
-
-### Verificación
-
-- [Completar]
-
-### Uso de IA
-
-[Completar]
-
----
-
-<a id="adr-011"></a>
-
-## ADR-011: [La decisión sobre la iconografía, escrita como afirmación]
-
-**Estado:** [Completar]
-
-**Fecha:** [Completar]
-
-**Requisitos relacionados:** [Completar]
-
-### Contexto
-
-[Completar]
-
-*¿Qué problema tenía la app antes de usar íconos? ¿Qué dice la documentación de Expo sobre la librería
-que suele usarse por defecto?*
 
 ### Alternativas consideradas
 
