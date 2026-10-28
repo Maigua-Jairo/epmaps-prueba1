@@ -25,8 +25,14 @@ export default function BorradorModal() {
   const [borrador, setBorrador] = useState<Borrador | null>(null);
   const [descartando, setDescartando] = useState(false);
 
+  // Si no hay nada que retomar (p. ej. la ruta se abrió sola al recargar en desarrollo),
+  // el aviso se cierra en lugar de quedarse vacío.
   useEffect(() => {
-    if (sesion) borradorDe(db, sesion.tecnico.codigo).then(setBorrador);
+    if (!sesion) return;
+    borradorDe(db, sesion.tecnico.codigo).then((b) => {
+      if (b) setBorrador(b);
+      else volver();
+    });
   }, [db, sesion]);
 
   const continuar = () => {
