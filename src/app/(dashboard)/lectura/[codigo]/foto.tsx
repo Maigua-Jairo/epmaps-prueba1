@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { Controller } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
 import { ScrollView } from 'react-native';
 
 import { CameraCapture } from '@/components/CameraCapture';
@@ -12,8 +12,9 @@ import { useRegistro } from '@/hooks/useLecturaForm';
 export default function FotoScreen() {
   const { codigo, original, form, calculo, marcarPaso } = useRegistro();
   useFocusEffect(useCallback(() => marcarPaso('foto'), [marcarPaso]));
-  const estado = form.watch('estado');
-  const fotoUri = form.watch('fotoUri');
+  // useWatch se suscribe al campo: el botón se actualiza al tomar o quitar la foto.
+  const estado = useWatch({ control: form.control, name: 'estado' });
+  const fotoUri = useWatch({ control: form.control, name: 'fotoUri' });
 
   const motivo =
     estado === 'DANADO'
