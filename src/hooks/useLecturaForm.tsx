@@ -29,6 +29,9 @@ import { useSession } from './useSession';
 /** Espera tras la última tecla antes de escribir el borrador en SQLite. */
 const DEBOUNCE_BORRADOR_MS = 300;
 
+/** Registro en curso: el único autorizado a escribir el borrador (hay uno a la vez). */
+let registroActivo: object | null = null;
+
 interface Calculo {
   lectura: number | null;
   /** Null si no hay lectura o si no se tienen datos del medidor (sin señal y sin caché). */
@@ -120,10 +123,12 @@ export function RegistroProvider({
   const hayCambios = useRef(borrador !== null);
   const terminado = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const instancia = useRef({}).current;
 
   const persistir = () => {
     clearTimeout(timer.current);
-    if (!hayCambios.current || terminado.current || !sesion) return;
+    // Solo el registro en curso escribe el borrador: uno ya terminado o descartado no lo revive.
+    if (!hayCambios.current || terminado.current || !sesion || registroActivo !== instancia) return;
     guardarBorrador(db, {
       codigoMedidor: codigo,
       lecturaId: original?.id ?? null,
@@ -134,6 +139,7 @@ export function RegistroProvider({
   };
   // persistir solo lee refs y valores fijos durante el flujo (db, código, sesión).
   useEffect(() => {
+    registroActivo = instancia;
     const cambios = form.watch(() => {
       hayCambios.current = true;
       clearTimeout(timer.current);
@@ -147,6 +153,9 @@ export function RegistroProvider({
       cambios.unsubscribe();
       app.remove();
       clearTimeout(timer.current);
+      if (registroActivo === instancia) registroActivo = null;
+      // Si un guardado del borrador quedó en vuelo al registrar, se borra otra vez al salir.
+      if (terminado.current) eliminarBorrador(db).catch(() => {});
     };
   }, [form]);
 
