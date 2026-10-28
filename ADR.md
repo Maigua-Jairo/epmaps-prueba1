@@ -52,26 +52,24 @@ Expo al generar el proyecto. Marca en qué ADR justificas cada una.
 
 <a id="adr-001"></a>
 
-## ADR-001: [La decisión sobre la navegación entre pantallas, escrita como afirmación]
+## ADR-001: Usar Expo-Router para la navegacion
 
-**Estado:** [Propuesto / Aceptado / Rechazado / Reemplazado por ADR-00X]
+**Estado:** Aceptado
 
-**Fecha:** [Completar]
+**Fecha:** 28/10/2026
 
-**Requisitos relacionados:** [Completar]
+**Requisitos relacionados:** R8, indica que el registro de lecturas puede trabajar en varias pantallas
 
 ### Contexto
 
-[Completar]
+La aplicacion posee una pantalla de login, registro de lecturas realizadas, consulta de medidores. Asimismo, se tiene diversas pantallas para los registros de lectura.El proyecto, se basa en R8, que mencion una opcion para que el trabajador pueda continuar registrando una lectura en el caso de que cierre la aplicacion. La navegacion le permite conservar sus datos registrados sin necesidad de volver a ingresarlos
 
-*¿Cuántas pantallas tiene la app? ¿Qué pasa con el botón atrás de Android entre los pasos del
-registro? ¿Cómo se separa lo que ve un técnico con sesión de lo que ve uno sin sesión (R1)?*
 
 ### Alternativas consideradas
 
 | Alternativa | Ventajas en este proyecto | Desventajas en este proyecto |
 |---|---|---|
-| [Opción A] | [Completar] | [Completar] |
+| Expo-Router | Viene incluido en la plantilla de Expo y no requiere agregar dependencias. Organiza las  | [Completar] |
 | [Opción B] | [Completar] | [Completar] |
 | [Opción C, opcional] | [Completar] | [Completar] |
 
