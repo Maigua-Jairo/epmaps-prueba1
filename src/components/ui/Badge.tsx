@@ -1,6 +1,4 @@
-import { View } from 'react-native';
-
-import { Text } from './Text';
+import { Text, View } from 'react-native';
 
 type Tono = 'info' | 'exito' | 'advertencia' | 'peligro';
 

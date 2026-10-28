@@ -1,43 +1,43 @@
-import { View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Text } from '@/components/ui';
 import { useRegistro } from '@/hooks/useLecturaForm';
-
-import { Cabecera } from './Cabecera';
+import { volver } from '@/utils/navegacion';
 
 export const TOTAL_PASOS = 4;
-const NOMBRES_PASOS = ['Estado', 'Datos', 'Foto', 'Confirmar'];
 
 /** Cabecera del registro de lectura con el avance por pasos. */
 export function RegistroHeader({ paso, titulo }: { paso: number; titulo: string }) {
-  const { codigo, original } = useRegistro();
+  const { top } = useSafeAreaInsets();
+  const { codigo } = useRegistro();
 
   return (
-    <Cabecera
-      conVolver
-      accion={
-        <View className="rounded-full bg-white/15 px-3 py-1.5">
-          <Text className="text-xs font-extrabold tracking-wider text-white">
-            {original ? 'CORRIGIENDO · ' : ''}
-            {codigo}
-          </Text>
-        </View>
-      }
-      antetitulo={`Paso ${paso} de ${TOTAL_PASOS}`}
-      titulo={titulo}>
-      <View className="mt-5 flex-row gap-2">
-        {NOMBRES_PASOS.map((nombre, i) => (
-          <View key={nombre} className="flex-1 gap-1.5">
-            <View
-              className={`h-1.5 rounded-full ${i < paso ? 'bg-epmaps-secondary' : 'bg-white/20'}`}
-            />
-            <Text
-              className={`text-[11px] font-bold ${i + 1 === paso ? 'text-white' : 'text-white/50'}`}>
-              {nombre}
-            </Text>
-          </View>
+    <View style={{ paddingTop: top + 8 }} className="rounded-b-[32px] bg-epmaps-primary px-5 pb-6">
+      <View className="flex-row items-center justify-between">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Volver"
+          onPress={volver}
+          className="h-10 w-10 items-center justify-center rounded-full bg-white/15 active:bg-white/25">
+          <Text className="text-xl font-bold text-white">‹</Text>
+        </Pressable>
+        <Text className="text-sm font-bold tracking-wider text-white/80">{codigo}</Text>
+        <View className="w-10" />
+      </View>
+
+      <Text className="mt-4 text-xs font-bold uppercase tracking-widest text-white/70">
+        Paso {paso} de {TOTAL_PASOS}
+      </Text>
+      <Text className="text-2xl font-extrabold text-white">{titulo}</Text>
+
+      <View className="mt-4 flex-row gap-2">
+        {Array.from({ length: TOTAL_PASOS }, (_, i) => (
+          <View
+            key={i}
+            className={`h-1.5 flex-1 rounded-full ${i < paso ? 'bg-epmaps-secondary' : 'bg-white/25'}`}
+          />
         ))}
       </View>
-    </Cabecera>
+    </View>
   );
 }

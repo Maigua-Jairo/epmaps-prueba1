@@ -1,6 +1,5 @@
 import '@/global.css';
 
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
@@ -16,18 +15,7 @@ import { SessionProvider, useSession } from '@/hooks/useSession';
 
 SplashScreen.preventAutoHideAsync();
 
-/** Pesos de Manrope que usa la app; los nombres coinciden con los de tailwind.config.js. */
-const FUENTES = {
-  Manrope_400Regular: require('../../assets/fonts/Manrope_400Regular.ttf'),
-  Manrope_500Medium: require('../../assets/fonts/Manrope_500Medium.ttf'),
-  Manrope_600SemiBold: require('../../assets/fonts/Manrope_600SemiBold.ttf'),
-  Manrope_700Bold: require('../../assets/fonts/Manrope_700Bold.ttf'),
-  Manrope_800ExtraBold: require('../../assets/fonts/Manrope_800ExtraBold.ttf'),
-};
-
 export default function RootLayout() {
-  const [fuentesCargadas, errorFuentes] = useFonts(FUENTES);
-
   return (
     <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
       <NetworkProvider>
@@ -37,8 +25,7 @@ export default function RootLayout() {
             {/* R9: la barra está sobre el navegador, así aparece en todas las pantallas. */}
             <NetworkStatusBar />
             <SinMargenSuperior>
-              {/* Si la fuente fallara, la app sigue con la del sistema. */}
-              <RootNavigator fuentesListas={fuentesCargadas || errorFuentes !== null} />
+              <RootNavigator />
             </SinMargenSuperior>
           </View>
         </SessionProvider>
@@ -56,15 +43,14 @@ function SinMargenSuperior({ children }: { children: ReactNode }) {
 }
 
 /** Sin sesión solo existe (auth); con sesión solo (dashboard). Expo Router redirige solo (R1). */
-function RootNavigator({ fuentesListas }: { fuentesListas: boolean }) {
+function RootNavigator() {
   const { sesion, cargando } = useSession();
-  const listo = !cargando && fuentesListas;
 
   useEffect(() => {
-    if (listo) SplashScreen.hideAsync();
-  }, [listo]);
+    if (!cargando) SplashScreen.hideAsync();
+  }, [cargando]);
 
-  if (!listo) return null;
+  if (cargando) return null;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

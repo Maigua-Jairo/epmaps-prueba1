@@ -8,12 +8,12 @@
     "scheme": "emapslecturasapp",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/expo.icon"
     },
     "android": {
       "package": "com.epmaps.lecturas",
       "adaptiveIcon": {
-        "backgroundColor": "#0A4A80",
+        "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -29,9 +29,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0067B1",
+          "backgroundColor": "#208AEF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 140
+          "imageWidth": 76
         }
       ],
       "expo-sqlite",
@@ -43,19 +43,7 @@
           "microphonePermission": false
         }
       ],
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "./assets/fonts/Manrope_400Regular.ttf",
-            "./assets/fonts/Manrope_500Medium.ttf",
-            "./assets/fonts/Manrope_600SemiBold.ttf",
-            "./assets/fonts/Manrope_700Bold.ttf",
-            "./assets/fonts/Manrope_800ExtraBold.ttf"
-          ]
-        }
-      ],
-      "@react-native-vector-icons/ionicons"
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,

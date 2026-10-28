@@ -1,11 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FondoAgua } from '@/components/Cabecera';
-import { Badge, Button, Card, Icon, Text } from '@/components/ui';
+import { Badge, Button, Card } from '@/components/ui';
 import { obtenerLectura } from '@/database/repositories/lecturaRepository';
 import type { Lectura } from '@/domain/types';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
@@ -24,35 +23,25 @@ export default function ExitoScreen() {
   }, [db, id, ultimaSincronizacion]);
 
   return (
-    <View
-      style={{ paddingBottom: bottom + 16 }}
-      className="flex-1 justify-between overflow-hidden bg-epmaps-primary px-6">
-      <FondoAgua />
+    <View style={{ paddingBottom: bottom + 16 }} className="flex-1 justify-between bg-epmaps-primary px-6">
       <View className="flex-1 items-center justify-center gap-4">
-        <View className="h-28 w-28 items-center justify-center rounded-full bg-white/10">
-          <View className="h-20 w-20 items-center justify-center rounded-full bg-emerald-400">
-            <Icon name="checkmark" size={44} color="#FFFFFF" />
+        <View className="h-24 w-24 items-center justify-center rounded-full bg-white/15">
+          <View className="h-16 w-16 items-center justify-center rounded-full bg-emerald-400">
+            <Text className="text-3xl font-bold text-white">✓</Text>
           </View>
         </View>
         <Text className="text-3xl font-extrabold text-white">
           {corregida === '1' ? 'Lectura corregida' : 'Lectura registrada'}
         </Text>
-        <View className="rounded-full bg-white/15 px-4 py-1.5">
-          <Text className="text-sm font-extrabold tracking-wider text-white">{lectura?.codigoMedidor}</Text>
-        </View>
+        <Text className="text-center text-base text-white/80">{lectura?.codigoMedidor}</Text>
 
         {lectura ? (
-          <Card className="mt-2 w-full gap-4">
+          <Card className="mt-2 w-full gap-3">
             {lectura.consumo !== null ? (
-              <View className="items-center">
-                <Text className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Consumo del mes
-                </Text>
-                <Text className="text-4xl font-extrabold text-epmaps-navy">
-                  {lectura.consumo}
-                  <Text className="text-lg font-bold text-slate-400"> m³</Text>
-                </Text>
-              </View>
+              <Text className="text-center text-sm text-slate-500">
+                Consumo del mes:{' '}
+                <Text className="font-bold text-slate-900">{lectura.consumo} m³</Text>
+              </Text>
             ) : null}
             <View className="flex-row flex-wrap justify-center gap-2">
               {lectura.estadoEnvio === 'ENVIADA' ? (
@@ -75,12 +64,7 @@ export default function ExitoScreen() {
         ) : null}
       </View>
 
-      <Button
-        titulo="Registrar otro medidor"
-        icono="add-circle-outline"
-        variante="claro"
-        onPress={() => router.dismissTo('/')}
-      />
+      <Button titulo="Registrar otro medidor" variante="secundario" onPress={() => router.dismissTo('/')} />
     </View>
   );
 }
