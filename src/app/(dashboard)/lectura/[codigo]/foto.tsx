@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { Controller } from 'react-hook-form';
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 
 import { CameraCapture } from '@/components/CameraCapture';
 import { RegistroHeader } from '@/components/RegistroHeader';

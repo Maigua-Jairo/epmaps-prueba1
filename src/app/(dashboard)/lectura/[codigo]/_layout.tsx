@@ -1,7 +1,7 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Text } from 'react-native';
 
 import { Button, Card, Fondo } from '@/components/ui';
 import { obtenerBorrador, type Borrador } from '@/database/repositories/borradorRepository';
