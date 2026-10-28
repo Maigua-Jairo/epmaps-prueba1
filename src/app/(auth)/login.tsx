@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FondoAgua } from '@/components/Cabecera';
@@ -34,21 +34,18 @@ export default function LoginScreen() {
       className="flex-1 bg-epmaps-primary"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerClassName="flex-grow" keyboardShouldPersistTaps="handled">
-        <View style={{ paddingTop: top + 32 }} className="items-center overflow-hidden px-6 pb-14">
+        <View style={{ paddingTop: top + 40 }} className="overflow-hidden px-6 pb-14">
           <FondoAgua />
-          <View className="mb-5 rounded-[28px] bg-white p-4">
-            <Image
-              source={require('../../../assets/images/logo-epmaps.png')}
-              accessibilityLabel="Logo de EPMAPS"
-              style={{ width: 128, height: 128 * (746 / 648) }}
-              resizeMode="contain"
-            />
+          <View className="mb-6 h-16 w-16 items-center justify-center rounded-3xl bg-white">
+            <Icon name="water" size={34} color="#0067B1" />
           </View>
-          <Text className="text-[30px] font-extrabold text-white">Lecturas de medidores</Text>
-          <View className="mt-2 flex-row items-center gap-2">
+          <Text className="text-[34px] font-extrabold leading-tight text-white">
+            Lecturas{'\n'}de medidores
+          </Text>
+          <View className="mt-3 flex-row items-center gap-2">
             <View className="h-1.5 w-1.5 rounded-full bg-epmaps-secondary" />
             <Text className="text-sm font-semibold tracking-wide text-white/80">
-              Agua potable de Quito
+              EPMAPS · Agua potable de Quito
             </Text>
           </View>
         </View>

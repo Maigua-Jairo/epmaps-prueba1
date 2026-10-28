@@ -13,9 +13,10 @@
     "android": {
       "package": "com.epmaps.lecturas",
       "adaptiveIcon": {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#0A4A80",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png"
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -28,9 +29,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#0067B1",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200
+          "imageWidth": 140
         }
       ],
       "expo-sqlite",
