@@ -62,6 +62,9 @@ export default function BorradorModal() {
       })
     : '';
 
+  // Hasta confirmar que hay un borrador no se dibuja nada: así no parpadea si se cierra solo.
+  if (!borrador) return null;
+
   return (
     <View className="flex-1 justify-center bg-black/60 p-6">
       <View className="gap-5 rounded-[28px] bg-white p-6">
