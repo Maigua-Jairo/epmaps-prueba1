@@ -11,7 +11,6 @@ interface CameraCaptureProps {
   codigoMedidor: string;
   fotoUri: string | null;
   obligatoria: boolean;
-  /** Por qué es obligatoria, para explicárselo al técnico. */
   motivoObligatoria: string | null;
   onCambiar: (uri: string | null) => void;
   error?: string;

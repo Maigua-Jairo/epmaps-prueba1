@@ -5,7 +5,6 @@ type Variante = 'primario' | 'secundario' | 'contorno' | 'peligro';
 const estilos: Record<Variante, { boton: string; texto: string; spinner: string }> = {
   primario: { boton: 'bg-epmaps-primary', texto: 'text-white', spinner: '#FFFFFF' },
   secundario: { boton: 'bg-epmaps-secondary', texto: 'text-white', spinner: '#FFFFFF' },
-  // Vidrio con borde: acciones de menor peso dentro de una tarjeta.
   contorno: {
     boton: 'border-2 border-epmaps-primary/40 bg-white/60',
     texto: 'text-epmaps-primary',

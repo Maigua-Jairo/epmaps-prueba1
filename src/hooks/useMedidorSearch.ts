@@ -11,13 +11,7 @@ import { fetchMedidor, SinConexionError } from '@/services/api';
 
 export type OrigenMedidor = 'red' | 'cache';
 
-/**
- * Consulta de medidores con caché en SQLite (R3):
- * 1. Si se consultó hoy, se muestra desde la caché sin tocar la red.
- * 2. Si no, se descarga y se guarda.
- * 3. Sin conexión, se usa la caché aunque sea de otro día.
- * Solo debe llamarse con un código ya validado (R2).
- */
+/** R3: caché del día sin tocar la red; si no, descarga; sin conexión, caché de cualquier día. */
 export function useMedidorSearch() {
   const db = useSQLiteContext();
   const [medidor, setMedidor] = useState<MedidorEnCache | null>(null);

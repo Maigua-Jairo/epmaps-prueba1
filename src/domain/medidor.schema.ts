@@ -7,11 +7,7 @@ export const ESTADOS_MEDIDOR = ['NORMAL', 'INACCESIBLE', 'DANADO'] as const;
 
 const MIN_TEXTO = 5;
 
-/**
- * Formulario de lectura. La matriz de estados (R5) y la regla de anomalía (R6)
- * dependen de los datos del medidor, por eso el esquema se construye con él.
- * Sin medidor (registrado sin señal y sin caché) solo se validan las reglas de R5.
- */
+/** El esquema depende del medidor (R6); sin medidor solo se validan las reglas de R5. */
 export function crearLecturaSchema(medidor: Medidor | null) {
   return z
     .object({
@@ -20,7 +16,6 @@ export function crearLecturaSchema(medidor: Medidor | null) {
       motivo: z.string().trim(),
       descripcion: z.string().trim(),
       revisionConfirmada: z.boolean(),
-      /** Ruta de la foto ya copiada al almacenamiento persistente del teléfono. */
       fotoUri: z.string().nullable(),
     })
     .superRefine((d, ctx) => {

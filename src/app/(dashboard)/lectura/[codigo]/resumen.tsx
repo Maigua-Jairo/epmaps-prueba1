@@ -49,8 +49,7 @@ export default function ResumenScreen() {
       setGuardando(false);
       return;
     }
-    // Ya está guardada: lo que sigue no debe reportarse como un fallo al guardar.
-    // Con señal se envía de inmediato; sin señal solo actualiza el contador de pendientes.
+    // Ya está guardada: un fallo del envío no debe reportarse como fallo al guardar.
     sincronizar();
     router.replace({
       pathname: '/lectura/exito',

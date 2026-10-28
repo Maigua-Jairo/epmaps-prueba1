@@ -8,7 +8,6 @@ import { ReflejosCabecera } from './ui';
 
 export const TOTAL_PASOS = 4;
 
-/** Cabecera del registro de lectura con el avance por pasos. */
 export function RegistroHeader({ paso, titulo }: { paso: number; titulo: string }) {
   const { top } = useSafeAreaInsets();
   const { codigo } = useRegistro();

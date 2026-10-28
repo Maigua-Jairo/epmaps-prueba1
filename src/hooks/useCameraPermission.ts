@@ -1,11 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Linking } from 'react-native';
 
-/**
- * - sin-preguntar: aún no se ha pedido el permiso.
- * - denegado: se rechazó, pero se puede volver a pedir.
- * - bloqueado: Android ya no muestra el diálogo; solo se activa desde Ajustes.
- */
+/** bloqueado: Android ya no muestra el diálogo; solo se activa desde Ajustes. */
 export type EstadoPermisoCamara = 'cargando' | 'sin-preguntar' | 'concedido' | 'denegado' | 'bloqueado';
 
 /** Permiso de cámara con expo-image-picker (R7). */
@@ -21,7 +17,6 @@ export function useCameraPermission() {
 
   return {
     estado,
-    /** Muestra el diálogo del sistema; devuelve true si el técnico lo concede. */
     solicitar: async () => (await pedirPermiso()).granted,
     abrirAjustes: () => Linking.openSettings(),
   };

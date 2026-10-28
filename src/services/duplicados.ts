@@ -13,11 +13,7 @@ export interface Duplicado {
   lecturaLocal: Lectura | null;
 }
 
-/**
- * R10: no se puede registrar dos veces el mismo medidor en el mismo mes.
- * Se revisa en el teléfono, en la fecha de la última lectura del medidor y,
- * si hay señal, en el sistema de la oficina.
- */
+/** R10: se revisa en el teléfono, en la última lectura del medidor y, con señal, en la oficina. */
 export async function buscarDuplicado(
   db: SQLiteDatabase,
   codigo: string,

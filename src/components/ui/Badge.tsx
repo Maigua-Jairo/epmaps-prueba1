@@ -2,8 +2,7 @@ import { Text, View } from 'react-native';
 
 type Tono = 'info' | 'exito' | 'advertencia' | 'peligro';
 
-// Fondo suave del color de estado y texto oscuro: legible bajo el sol. El texto
-// siempre nombra el estado, el color solo lo refuerza.
+// Fondo suave y texto oscuro, legible bajo el sol; el texto siempre nombra el estado.
 const estilos: Record<Tono, { fondo: string; texto: string }> = {
   info: { fondo: 'bg-epmaps-accent/20', texto: 'text-epmaps-dark' },
   exito: { fondo: 'bg-status-online/20', texto: 'text-emerald-900' },

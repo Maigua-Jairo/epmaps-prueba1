@@ -25,10 +25,7 @@ async function pedir(ruta: string, init?: RequestInit): Promise<Response> {
   }
 }
 
-/**
- * Busca un medidor por su código exacto. Devuelve null si no existe.
- * MockAPI filtra por coincidencia parcial y responde 404 cuando no hay resultados.
- */
+/** MockAPI filtra por coincidencia parcial y responde 404 sin resultados: se busca el código exacto. */
 export async function fetchMedidor(codigo: string): Promise<Medidor | null> {
   const res = await pedir(`/medidores?codigo=${encodeURIComponent(codigo)}`);
   if (res.status === 404) return null;
@@ -74,7 +71,6 @@ function cuerpoLectura(l: Lectura): string {
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
-/** Crea la lectura en la oficina y devuelve el id que le asignó. */
 export async function crearLecturaRemota(l: Lectura): Promise<string> {
   const res = await pedir('/Lecturas', { method: 'POST', headers: JSON_HEADERS, body: cuerpoLectura(l) });
   if (!res.ok) throw new Error(`El sistema de la oficina respondió con error ${res.status}`);
@@ -82,7 +78,6 @@ export async function crearLecturaRemota(l: Lectura): Promise<string> {
   return creada.id;
 }
 
-/** Sobrescribe una lectura que ya existe en la oficina con los datos actuales. */
 export async function actualizarLecturaRemota(idRemoto: string, l: Lectura): Promise<void> {
   const res = await pedir(`/Lecturas/${idRemoto}`, {
     method: 'PUT',

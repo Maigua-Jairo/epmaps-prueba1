@@ -25,8 +25,7 @@ export default function BorradorModal() {
   const [borrador, setBorrador] = useState<Borrador | null>(null);
   const [descartando, setDescartando] = useState(false);
 
-  // Si no hay nada que retomar (p. ej. la ruta se abrió sola al recargar en desarrollo),
-  // el aviso se cierra en lugar de quedarse vacío.
+  // Sin borrador que retomar (p. ej. recarga en desarrollo) el aviso se cierra solo.
   useEffect(() => {
     if (!sesion) return;
     borradorDe(db, sesion.tecnico.codigo).then((b) => {
@@ -62,7 +61,7 @@ export default function BorradorModal() {
       })
     : '';
 
-  // Hasta confirmar que hay un borrador no se dibuja nada: así no parpadea si se cierra solo.
+  // No se dibuja hasta confirmar el borrador, así no parpadea al cerrarse solo.
   if (!borrador) return null;
 
   return (

@@ -11,11 +11,7 @@ import { claveLectura, periodoDe } from '@/domain/medidor.rules';
 
 import { eliminarFoto } from './imageStorage';
 
-/**
- * Un borrador que ya no se puede guardar no tiene sentido ofrecerlo (R8):
- * - corrección de una lectura que ya se envió o ya no existe (R10);
- * - registro nuevo de un medidor que ya tiene su lectura de este mes (R10).
- */
+/** R8: no sirve el borrador de una lectura ya enviada o de un medidor ya registrado este mes. */
 async function esObsoleto(db: SQLiteDatabase, b: Borrador): Promise<boolean> {
   if (b.lecturaId !== null) {
     const lectura = await obtenerLectura(db, b.lecturaId);
@@ -25,10 +21,7 @@ async function esObsoleto(db: SQLiteDatabase, b: Borrador): Promise<boolean> {
   return (await obtenerLecturaPorClave(db, clave)) !== null;
 }
 
-/**
- * Borrador pendiente del técnico, si lo hay y todavía puede completarse.
- * Los de otro técnico se ignoran; los obsoletos se descartan sin preguntar.
- */
+/** Borrador del técnico; los obsoletos se descartan sin preguntar. */
 export async function borradorDe(db: SQLiteDatabase, tecnicoCodigo: string): Promise<Borrador | null> {
   const borrador = await obtenerBorrador(db);
   if (!borrador || borrador.tecnicoCodigo !== tecnicoCodigo) return null;

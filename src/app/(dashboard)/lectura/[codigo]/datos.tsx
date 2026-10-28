@@ -16,7 +16,7 @@ export default function DatosScreen() {
   const pideLectura = estado !== 'INACCESIBLE';
 
   const continuar = async () => {
-    // Solo los campos de este paso; la foto se valida en el siguiente.
+    // Solo los campos de este paso.
     if (await form.trigger(['lectura', 'motivo', 'descripcion', 'revisionConfirmada'])) {
       router.push({ pathname: '/lectura/[codigo]/foto', params: { codigo } });
     }

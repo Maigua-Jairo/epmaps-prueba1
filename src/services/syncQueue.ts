@@ -23,11 +23,7 @@ export interface ResultadoSync {
   fallidas: number;
 }
 
-/**
- * R4: una lectura tomada sin señal se compara con la anterior al recuperar conexión.
- * Si resulta anómala sin la revisión y la foto exigidas, o menor que la anterior,
- * se envía marcada como REQUIERE_REVISION para que la oficina la revise.
- */
+/** R4: al reconectar, una lectura sin señal anómala o menor a la anterior va como REQUIERE_REVISION. */
 async function verificar(db: SQLiteDatabase, l: Lectura): Promise<Lectura> {
   if (l.verificacion !== 'PENDIENTE_VERIFICAR') return l;
 
@@ -57,12 +53,7 @@ async function verificar(db: SQLiteDatabase, l: Lectura): Promise<Lectura> {
   return { ...l, ...datos };
 }
 
-/**
- * Envío idempotente (R9): la clave medidor_mes identifica la lectura en la oficina.
- * - Si existe con el mismo registroId, es nuestra: el POST llegó pero la respuesta
- *   se perdió al cortarse la señal. Se actualiza, no se duplica.
- * - Si existe con otro registroId, otro registro ganó ese mes: se rechaza (R10).
- */
+/** R9: mismo registroId = reintento propio (PUT); otro registroId = la oficina ya la tiene (R10). */
 async function enviar(db: SQLiteDatabase, l: Lectura): Promise<void> {
   const existente = await buscarLecturaRemota(l.clave);
   if (!existente) {

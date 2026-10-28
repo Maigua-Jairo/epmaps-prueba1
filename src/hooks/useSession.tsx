@@ -7,7 +7,6 @@ import { borrarSesion, guardarSesion, leerSesion } from '@/services/sessionStora
 interface SessionContextValue {
   sesion: Sesion | null;
   cargando: boolean;
-  /** Devuelve false si el código o la clave no son válidos. */
   iniciarSesion: (codigo: string, clave: string) => Promise<boolean>;
   cerrarSesion: () => Promise<void>;
 }

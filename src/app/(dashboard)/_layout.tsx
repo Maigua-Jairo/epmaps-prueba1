@@ -1,7 +1,6 @@
 import { Stack } from 'expo-router';
 
-// La pantalla de consulta siempre queda en la base de la pila: así el aviso de
-// borrador (que se abre solo al iniciar la app) y el registro tienen a dónde volver.
+// La consulta queda siempre en la base de la pila: el aviso y el registro tienen a dónde volver.
 export const unstable_settings = {
   anchor: 'index',
 };

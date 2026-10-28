@@ -25,10 +25,7 @@ const CREAR_BORRADOR = `
   );
 `;
 
-/**
- * Agrega solo las columnas que falten. SQLite no tiene ADD COLUMN IF NOT EXISTS,
- * así que se consulta PRAGMA table_info; esto hace que la migración se pueda repetir.
- */
+/** SQLite no tiene ADD COLUMN IF NOT EXISTS: se revisa PRAGMA table_info para poder repetirla. */
 async function agregarColumnasFaltantes(
   db: SQLiteDatabase,
   tabla: string,
@@ -68,8 +65,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
   }
 
   if (currentVersion < 2) {
-    // v2: lecturas registradas en el teléfono (R4). La clave única impide
-    // registrar dos veces el mismo medidor en el mismo mes (R10).
+    // v2: lecturas (R4); la clave única impide dos registros del mismo medidor en el mes (R10).
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS lecturas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,8 +105,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
   }
 
   if (currentVersion < 6) {
-    // v6: reparación. Una base podía quedar marcada en v4/v5 sin sus columnas si la app
-    // se recargó en desarrollo a mitad de un cambio de esquema. Se completa lo que falte.
+    // v6: reparación de bases marcadas en v4/v5 sin sus columnas (recarga en desarrollo).
     await agregarColumnasFaltantes(db, 'lecturas', { ...COLUMNAS_V3, ...COLUMNAS_V4 });
     await db.execAsync(CREAR_BORRADOR);
   }

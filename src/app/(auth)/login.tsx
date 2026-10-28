@@ -20,7 +20,7 @@ export default function LoginScreen() {
     setError(null);
     setEnviando(true);
     const ok = await iniciarSesion(codigo, clave);
-    // Si es correcto, Stack.Protected cambia de pantalla; aquí solo queda el caso de error.
+    // Si es correcto, Stack.Protected cambia de pantalla solo.
     if (!ok) {
       setError('Código de empleado o clave incorrectos');
       setEnviando(false);

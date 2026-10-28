@@ -1,10 +1,6 @@
 import { View, type ViewProps } from 'react-native';
 
-/**
- * Fondo de las pantallas: gris claro con manchas de agua difusas.
- * Las tarjetas translúcidas (Card) dejan ver estas manchas: así se logra el efecto
- * "liquid glass" sin librerías de desenfoque.
- */
+/** Manchas de agua que las tarjetas translúcidas dejan ver: efecto liquid glass sin desenfoque. */
 export function Fondo({ className, children, ...rest }: ViewProps) {
   return (
     <View className={`flex-1 overflow-hidden bg-epmaps-bg ${className ?? ''}`} {...rest}>
@@ -21,7 +17,6 @@ export function Fondo({ className, children, ...rest }: ViewProps) {
   );
 }
 
-/** Reflejos de agua dentro de las cabeceras oscuras. */
 export function ReflejosCabecera() {
   return (
     <>

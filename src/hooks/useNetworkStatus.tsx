@@ -20,11 +20,7 @@ interface NetworkContextValue {
 
 const NetworkContext = createContext<NetworkContextValue | null>(null);
 
-/**
- * Estado de conexión y cola de envío compartidos por toda la app (R9).
- * Envía solo: al abrir la app con señal, al recuperar la conexión, tras registrar
- * una lectura y cada 30 s mientras queden pendientes.
- */
+/** R9: envía al abrir, al reconectar, tras registrar y cada 30 s mientras haya pendientes. */
 export function NetworkProvider({ children }: { children: ReactNode }) {
   const db = useSQLiteContext();
   const [enLinea, setEnLinea] = useState<boolean | null>(null);

@@ -55,7 +55,7 @@ export default function MisLecturasScreen() {
           <LecturaItem
             lectura={item}
             onCorregir={async () => {
-              // Un registro a la vez: si hay uno a medias, primero se decide qué hacer con él (R8).
+              // R8: un registro a la vez.
               if (sesion && (await borradorDe(db, sesion.tecnico.codigo))) {
                 router.push('/borrador-modal');
                 return;

@@ -31,7 +31,7 @@ export default function InicioScreen() {
     limpiar();
   };
 
-  // R2: con un código incompleto o mal formado no se consulta ni se muestra ningún medidor.
+  // R2: un código mal formado no consulta nada.
   const consultar = () => {
     const limpio = codigo.trim();
     if (!esCodigoMedidorValido(limpio)) {
@@ -42,7 +42,6 @@ export default function InicioScreen() {
     buscar(limpio);
   };
 
-  // R8: al abrir la app, si quedó un registro a medias, se ofrece continuarlo o descartarlo.
   useEffect(() => {
     if (borradorOfrecido || !sesion) return;
     borradorOfrecido = true;
@@ -54,7 +53,7 @@ export default function InicioScreen() {
   const registrar = async () => {
     const limpio = codigo.trim();
     setComprobando(true);
-    // Un registro a la vez: si hay uno a medias, primero se decide qué hacer con él (R8).
+    // R8: un registro a la vez; primero se decide qué hacer con el borrador.
     if (sesion && (await borradorDe(db, sesion.tecnico.codigo))) {
       setComprobando(false);
       router.push('/borrador-modal');

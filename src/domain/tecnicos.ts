@@ -11,7 +11,6 @@ const TECNICOS: Credencial[] = [
   { codigo: 'EMP-003', nombre: 'Luis Tipán', clave: 'epmaps2026' },
 ];
 
-/** Devuelve el técnico si el código y la clave coinciden; null en otro caso. */
 export function autenticar(codigo: string, clave: string): Tecnico | null {
   const encontrado = TECNICOS.find(
     (t) => t.codigo === codigo.trim().toUpperCase() && t.clave === clave,

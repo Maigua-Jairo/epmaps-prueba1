@@ -51,7 +51,6 @@ interface RegistroContextValue {
   marcarPaso: (paso: PasoRegistro) => void;
   /** Paso al que hay que avanzar al reanudar un borrador; se entrega una sola vez. */
   tomarPasoAReanudar: () => PasoRegistro | null;
-  /** Guarda (o corrige) la lectura validada en SQLite y devuelve su id local. */
   guardar: () => Promise<number>;
 }
 
@@ -84,11 +83,7 @@ function calcular(medidor: MedidorEnCache | null, v: LecturaFormValues): Calculo
   return { lectura, consumo, esAnomalo, fotoObligatoria: fotoEsObligatoria(v.estado, esAnomalo) };
 }
 
-/**
- * Un solo formulario (react-hook-form + Zod) compartido por las pantallas del registro.
- * Vive en el layout del flujo, así los datos se conservan al avanzar o retroceder,
- * y se copia a SQLite en cada cambio para sobrevivir al cierre de la app (R8).
- */
+/** Un solo formulario para todos los pasos; se copia a SQLite en cada cambio (R8). */
 export function RegistroProvider({
   codigo,
   medidor,
@@ -137,7 +132,6 @@ export function RegistroProvider({
       datos: form.getValues(),
     });
   };
-  // persistir solo lee refs y valores fijos durante el flujo (db, código, sesión).
   useEffect(() => {
     registroActivo = instancia;
     const cambios = form.watch(() => {
@@ -159,8 +153,7 @@ export function RegistroProvider({
     };
   }, [form]);
 
-  // Estables (sin dependencias): las pantallas los usan en useFocusEffect.
-  // persistir solo lee refs y valores fijos durante el flujo.
+  // Estables: las pantallas los usan en useFocusEffect.
   const marcarPaso = useCallback((paso: PasoRegistro) => {
     pasoActual.current = paso;
     persistir();

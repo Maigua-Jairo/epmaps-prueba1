@@ -17,17 +17,14 @@ export function esDeLaJornada(fechaIso: string, ahora = new Date()): boolean {
   return new Date(fechaIso).toDateString() === ahora.toDateString();
 }
 
-/** Consumo del mes: lectura actual menos la anterior (R6). */
 export function calcularConsumo(medidor: Medidor, lectura: number): number {
   return lectura - medidor.ultimaLectura;
 }
 
-/** Anómalo si el consumo supera el triple del promedio mensual (R6). */
 export function esConsumoAnomalo(medidor: Medidor, consumo: number): boolean {
   return consumo > medidor.consumoPromedio * FACTOR_ANOMALIA;
 }
 
-/** La foto es obligatoria con consumo anómalo o medidor dañado; opcional en los demás casos (R7). */
 export function fotoEsObligatoria(estado: EstadoMedidor | undefined, esAnomalo: boolean): boolean {
   return estado === 'DANADO' || esAnomalo;
 }

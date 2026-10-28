@@ -12,7 +12,7 @@ import { useRegistro } from '@/hooks/useLecturaForm';
 export default function FotoScreen() {
   const { codigo, original, form, calculo, marcarPaso } = useRegistro();
   useFocusEffect(useCallback(() => marcarPaso('foto'), [marcarPaso]));
-  // useWatch se suscribe al campo: el botón se actualiza al tomar o quitar la foto.
+  // useWatch y no watch: con React Compiler, watch no actualiza el botón.
   const estado = useWatch({ control: form.control, name: 'estado' });
   const fotoUri = useWatch({ control: form.control, name: 'fotoUri' });
 

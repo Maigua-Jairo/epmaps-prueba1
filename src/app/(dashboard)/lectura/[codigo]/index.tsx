@@ -41,8 +41,7 @@ export default function EstadoScreen() {
 
   useFocusEffect(useCallback(() => marcarPaso('estado'), [marcarPaso]));
 
-  // R8: al continuar un borrador se apilan las pantallas hasta el paso donde quedó,
-  // así "Volver" sigue recorriendo el flujo en orden.
+  // R8: al reanudar se apilan los pasos hasta donde quedó, así "Volver" respeta el orden.
   useEffect(() => {
     const destino = tomarPasoAReanudar();
     if (!destino || destino === 'estado') return;

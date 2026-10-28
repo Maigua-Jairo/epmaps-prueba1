@@ -73,7 +73,6 @@ function aLectura(row: LecturaRow): Lectura {
   };
 }
 
-/** Guarda la lectura como pendiente de envío y devuelve su id local. */
 export async function insertarLectura(db: SQLiteDatabase, l: NuevaLectura): Promise<number> {
   try {
     const result = await db.runAsync(
@@ -109,10 +108,7 @@ export async function insertarLectura(db: SQLiteDatabase, l: NuevaLectura): Prom
   }
 }
 
-/**
- * Corrige una lectura solo si sigue pendiente (R10). La condición va en el mismo
- * UPDATE, así no hay forma de corregir una lectura que se envió hace un instante.
- */
+/** Corrige solo si sigue pendiente (R10); la condición va en el mismo UPDATE para evitar carreras. */
 export async function corregirLectura(
   db: SQLiteDatabase,
   id: number,
@@ -152,7 +148,6 @@ export async function obtenerLecturaPorClave(
   return row ? aLectura(row) : null;
 }
 
-/** Lecturas del técnico, de la más reciente a la más antigua. */
 export async function listarLecturasDeTecnico(
   db: SQLiteDatabase,
   tecnicoCodigo: string,
@@ -201,10 +196,7 @@ export async function guardarVerificacion(
   );
 }
 
-/**
- * Marca como enviada la versión que se envió. Si el técnico la corrigió mientras
- * tanto (revision distinta), queda pendiente y el próximo ciclo envía la corrección.
- */
+/** Marca como enviada esa revisión; si se corrigió mientras se enviaba, sigue pendiente. */
 export async function marcarEnviada(
   db: SQLiteDatabase,
   id: number,

@@ -21,27 +21,16 @@ export interface Medidor {
   consumoPromedio: number;
 }
 
-/** Medidor guardado en la caché local, con la hora en que se descargó. */
 export interface MedidorEnCache extends Medidor {
   consultadoEn: string;
 }
 
-/** Estado físico del medidor al momento de la visita (R5). */
 export type EstadoMedidor = 'NORMAL' | 'INACCESIBLE' | 'DANADO';
 
-/**
- * Comparación con la lectura anterior (R4):
- * - VERIFICADA: se comparó con datos del sistema al registrar.
- * - PENDIENTE_VERIFICAR: se registró sin señal; se compara al recuperar conexión.
- * - REQUIERE_REVISION: al verificar resultó anómala sin la confirmación del técnico.
- */
+/** R4: VERIFICADA al registrar, PENDIENTE_VERIFICAR sin señal, REQUIERE_REVISION si resultó anómala. */
 export type Verificacion = 'VERIFICADA' | 'PENDIENTE_VERIFICAR' | 'REQUIERE_REVISION';
 
-/**
- * - PENDIENTE: en el teléfono; se puede corregir (R10).
- * - ENVIADA: llegó a la oficina; ya no se puede corregir (R10).
- * - RECHAZADA: la oficina ya tenía otra lectura de ese medidor en ese mes (R10).
- */
+/** R10: solo PENDIENTE se puede corregir; RECHAZADA: la oficina ya tenía la lectura del mes. */
 export type EstadoEnvio = 'PENDIENTE' | 'ENVIADA' | 'RECHAZADA';
 
 export interface Lectura {
@@ -51,7 +40,6 @@ export interface Lectura {
   /** codigo_periodo: identifica la lectura de un medidor en un mes (R9, R10). */
   clave: string;
   codigoMedidor: string;
-  /** Mes de la lectura en formato AAAA-MM. */
   periodo: string;
   tecnicoCodigo: string;
   estadoMedidor: EstadoMedidor;

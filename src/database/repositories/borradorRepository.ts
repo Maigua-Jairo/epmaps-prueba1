@@ -2,7 +2,6 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { LecturaFormValues } from '@/domain/medidor.schema';
 
-/** Pantallas del flujo de registro, en orden. */
 export type PasoRegistro = 'estado' | 'datos' | 'foto' | 'resumen';
 
 /** Registro a medio llenar (R8). */
