@@ -2,11 +2,13 @@ import { Text, View } from 'react-native';
 
 type Tono = 'info' | 'exito' | 'advertencia' | 'peligro';
 
+// Fondo suave del color de estado y texto oscuro: legible bajo el sol. El texto
+// siempre nombra el estado, el color solo lo refuerza.
 const estilos: Record<Tono, { fondo: string; texto: string }> = {
-  info: { fondo: 'bg-sky-100', texto: 'text-sky-800' },
-  exito: { fondo: 'bg-emerald-100', texto: 'text-emerald-800' },
-  advertencia: { fondo: 'bg-amber-100', texto: 'text-amber-800' },
-  peligro: { fondo: 'bg-red-100', texto: 'text-red-800' },
+  info: { fondo: 'bg-epmaps-accent/20', texto: 'text-epmaps-dark' },
+  exito: { fondo: 'bg-status-online/20', texto: 'text-emerald-900' },
+  advertencia: { fondo: 'bg-status-offline/25', texto: 'text-amber-900' },
+  peligro: { fondo: 'bg-status-danger/15', texto: 'text-red-800' },
 };
 
 export function Badge({ texto, tono = 'info' }: { texto: string; tono?: Tono }) {

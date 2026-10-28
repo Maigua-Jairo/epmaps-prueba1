@@ -4,7 +4,7 @@ import { Controller } from 'react-hook-form';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { RegistroHeader } from '@/components/RegistroHeader';
-import { Button } from '@/components/ui';
+import { Button, Fondo } from '@/components/ui';
 import type { EstadoMedidor } from '@/domain/types';
 import { useRegistro } from '@/hooks/useLecturaForm';
 
@@ -13,19 +13,19 @@ const OPCIONES: { estado: EstadoMedidor; titulo: string; detalle: string; color:
     estado: 'NORMAL',
     titulo: 'Normal',
     detalle: 'El medidor se puede leer. La lectura es obligatoria.',
-    color: 'bg-emerald-500',
+    color: 'bg-status-online',
   },
   {
     estado: 'INACCESIBLE',
     titulo: 'Inaccesible',
     detalle: 'No se puede llegar al medidor. Indica el motivo; no se registra lectura.',
-    color: 'bg-amber-500',
+    color: 'bg-status-offline',
   },
   {
     estado: 'DANADO',
     titulo: 'Dañado',
     detalle: 'Describe el daño. La lectura es opcional.',
-    color: 'bg-red-500',
+    color: 'bg-status-danger',
   },
 ];
 
@@ -59,7 +59,7 @@ export default function EstadoScreen() {
   };
 
   return (
-    <View className="flex-1 bg-slate-100">
+    <Fondo>
       <RegistroHeader paso={1} titulo="Estado del medidor" />
       <ScrollView contentContainerClassName="gap-3 p-4 pb-10">
         <Controller
@@ -79,17 +79,17 @@ export default function EstadoScreen() {
                       // Un medidor inaccesible no registra lectura (R5).
                       if (op.estado === 'INACCESIBLE') form.setValue('lectura', '');
                     }}
-                    className={`flex-row items-center gap-4 rounded-3xl border-2 bg-white p-5 ${
-                      elegido ? 'border-epmaps-primary' : 'border-transparent'
+                    className={`flex-row items-center gap-4 rounded-3xl border-2 p-5 ${
+                      elegido ? 'border-epmaps-accent bg-epmaps-accent/10' : 'border-white bg-white/75'
                     }`}>
                     <View className={`h-4 w-4 rounded-full ${op.color}`} />
                     <View className="flex-1">
-                      <Text className="text-lg font-bold text-slate-900">{op.titulo}</Text>
+                      <Text className="text-lg font-bold text-epmaps-dark">{op.titulo}</Text>
                       <Text className="text-sm text-slate-500">{op.detalle}</Text>
                     </View>
                     <View
                       className={`h-6 w-6 items-center justify-center rounded-full border-2 ${
-                        elegido ? 'border-epmaps-primary' : 'border-slate-300'
+                        elegido ? 'border-epmaps-primary' : 'border-epmaps-dark/20'
                       }`}>
                       {elegido ? <View className="h-3 w-3 rounded-full bg-epmaps-primary" /> : null}
                     </View>
@@ -97,7 +97,7 @@ export default function EstadoScreen() {
                 );
               })}
               {error ? (
-                <Text className="text-sm font-medium text-epmaps-danger">{error.message}</Text>
+                <Text className="text-sm font-semibold text-red-700">{error.message}</Text>
               ) : null}
             </View>
           )}
@@ -106,6 +106,6 @@ export default function EstadoScreen() {
           <Button titulo="Continuar" onPress={continuar} />
         </View>
       </ScrollView>
-    </View>
+    </Fondo>
   );
 }

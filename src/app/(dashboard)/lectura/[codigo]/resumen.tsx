@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { Image, ScrollView, Text, View } from 'react-native';
 
 import { RegistroHeader } from '@/components/RegistroHeader';
-import { Badge, Button, Card } from '@/components/ui';
+import { Badge, Button, Card, Fondo } from '@/components/ui';
 import {
   LecturaDuplicadaError,
   LecturaYaEnviadaError,
@@ -15,9 +15,9 @@ const ETIQUETA_ESTADO = { NORMAL: 'Normal', INACCESIBLE: 'Inaccesible', DANADO: 
 
 function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
-    <View className="flex-row justify-between gap-4 border-b border-slate-100 py-3">
+    <View className="flex-row justify-between gap-4 border-b border-epmaps-dark/10 py-3">
       <Text className="text-sm text-slate-500">{etiqueta}</Text>
-      <Text className="flex-1 text-right text-sm font-semibold text-slate-900">{valor}</Text>
+      <Text className="flex-1 text-right text-sm font-semibold text-epmaps-dark">{valor}</Text>
     </View>
   );
 }
@@ -59,7 +59,7 @@ export default function ResumenScreen() {
   });
 
   return (
-    <View className="flex-1 bg-slate-100">
+    <Fondo>
       <RegistroHeader paso={4} titulo={original ? 'Confirmar corrección' : 'Confirmar registro'} />
       <ScrollView contentContainerClassName="gap-4 p-4 pb-10">
         <Card>
@@ -81,14 +81,14 @@ export default function ResumenScreen() {
           <Fila etiqueta="Foto" valor={v.fotoUri ? 'Adjunta' : 'Sin foto'} />
           {calculo.esAnomalo ? (
             <View className="mt-3">
-              <Badge tono="advertencia" texto="Consumo anómalo · revisión confirmada" />
+              <Badge tono="peligro" texto="Consumo anómalo · revisión confirmada" />
             </View>
           ) : null}
           {v.fotoUri ? (
             <Image
               source={{ uri: v.fotoUri }}
               accessibilityLabel="Foto del medidor"
-              className="mt-3 h-40 w-full rounded-2xl bg-slate-200"
+              className="mt-3 h-40 w-full rounded-2xl bg-epmaps-dark/10"
               resizeMode="cover"
             />
           ) : null}
@@ -102,8 +102,8 @@ export default function ResumenScreen() {
         </Card>
 
         {error ? (
-          <View className="rounded-2xl bg-red-50 px-4 py-3">
-            <Text className="text-sm font-medium text-epmaps-danger">{error}</Text>
+          <View className="rounded-2xl bg-status-danger/10 px-4 py-3">
+            <Text className="text-sm font-semibold text-red-700">{error}</Text>
           </View>
         ) : null}
 
@@ -113,6 +113,6 @@ export default function ResumenScreen() {
           onPress={() => registrar()}
         />
       </ScrollView>
-    </View>
+    </Fondo>
   );
 }

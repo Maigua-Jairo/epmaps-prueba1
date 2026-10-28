@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Badge, Button, Card } from '@/components/ui';
+import { Badge, Button, Card, Fondo } from '@/components/ui';
 import { obtenerLectura } from '@/database/repositories/lecturaRepository';
 import type { Lectura } from '@/domain/types';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
@@ -23,24 +23,24 @@ export default function ExitoScreen() {
   }, [db, id, ultimaSincronizacion]);
 
   return (
-    <View style={{ paddingBottom: bottom + 16 }} className="flex-1 justify-between bg-epmaps-primary px-6">
+    <Fondo style={{ paddingBottom: bottom + 16 }} className="justify-between px-6">
       <View className="flex-1 items-center justify-center gap-4">
-        <View className="h-24 w-24 items-center justify-center rounded-full bg-white/15">
-          <View className="h-16 w-16 items-center justify-center rounded-full bg-emerald-400">
+        <View className="h-24 w-24 items-center justify-center rounded-full border border-white bg-status-online/20">
+          <View className="h-16 w-16 items-center justify-center rounded-full bg-status-online">
             <Text className="text-3xl font-bold text-white">✓</Text>
           </View>
         </View>
-        <Text className="text-3xl font-extrabold text-white">
+        <Text className="text-3xl font-extrabold text-epmaps-dark">
           {corregida === '1' ? 'Lectura corregida' : 'Lectura registrada'}
         </Text>
-        <Text className="text-center text-base text-white/80">{lectura?.codigoMedidor}</Text>
+        <Text className="text-center text-base font-semibold text-epmaps-secondary">{lectura?.codigoMedidor}</Text>
 
         {lectura ? (
           <Card className="mt-2 w-full gap-3">
             {lectura.consumo !== null ? (
               <Text className="text-center text-sm text-slate-500">
                 Consumo del mes:{' '}
-                <Text className="font-bold text-slate-900">{lectura.consumo} m³</Text>
+                <Text className="font-bold text-epmaps-dark">{lectura.consumo} m³</Text>
               </Text>
             ) : null}
             <View className="flex-row flex-wrap justify-center gap-2">
@@ -64,7 +64,7 @@ export default function ExitoScreen() {
         ) : null}
       </View>
 
-      <Button titulo="Registrar otro medidor" variante="secundario" onPress={() => router.dismissTo('/')} />
-    </View>
+      <Button titulo="Registrar otro medidor" onPress={() => router.dismissTo('/')} />
+    </Fondo>
   );
 }

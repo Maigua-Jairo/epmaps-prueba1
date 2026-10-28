@@ -31,13 +31,13 @@ export function LecturaItem({ lectura, onCorregir }: { lectura: Lectura; onCorre
           <Image
             source={{ uri: lectura.fotoUri }}
             accessibilityLabel="Foto del medidor"
-            className="h-20 w-20 rounded-2xl bg-slate-200"
+            className="h-20 w-20 rounded-2xl bg-epmaps-dark/10"
           />
         ) : null}
         <View className="flex-1 gap-1">
           <View className="flex-row items-center justify-between">
-            <Text className="text-lg font-extrabold text-slate-900">{lectura.codigoMedidor}</Text>
-            <Text className="text-xs text-slate-400">{fechaHora(lectura.registradaEn)}</Text>
+            <Text className="text-lg font-extrabold text-epmaps-dark">{lectura.codigoMedidor}</Text>
+            <Text className="text-xs text-slate-500">{fechaHora(lectura.registradaEn)}</Text>
           </View>
           <Text className="text-sm text-slate-600">
             {ETIQUETA_ESTADO[lectura.estadoMedidor]}
@@ -52,15 +52,15 @@ export function LecturaItem({ lectura, onCorregir }: { lectura: Lectura; onCorre
             {lectura.verificacion === 'REQUIERE_REVISION' ? (
               <Badge tono="peligro" texto="Requiere revisión" />
             ) : null}
-            {lectura.esAnomalo ? <Badge tono="advertencia" texto="Consumo anómalo" /> : null}
+            {lectura.esAnomalo ? <Badge tono="peligro" texto="Consumo anómalo" /> : null}
           </View>
         </View>
       </View>
 
       {pendiente ? (
-        <Button titulo="Corregir" variante="secundario" onPress={onCorregir} />
+        <Button titulo="Corregir" variante="contorno" onPress={onCorregir} />
       ) : (
-        <Text className="text-xs text-slate-400">
+        <Text className="text-xs text-slate-500">
           {lectura.estadoEnvio === 'RECHAZADA'
             ? lectura.motivoRechazo
             : 'Ya está en el sistema de la oficina: no se puede corregir.'}

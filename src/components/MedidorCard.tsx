@@ -13,18 +13,18 @@ const hora = (iso: string) =>
 
 function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
-    <View className="flex-row items-start justify-between gap-4 border-b border-slate-100 py-3">
+    <View className="flex-row items-start justify-between gap-4 border-b border-epmaps-dark/10 py-3">
       <Text className="text-sm text-slate-500">{etiqueta}</Text>
-      <Text className="flex-1 text-right text-sm font-semibold text-slate-900">{valor}</Text>
+      <Text className="flex-1 text-right text-sm font-semibold text-epmaps-dark">{valor}</Text>
     </View>
   );
 }
 
 function Metrica({ etiqueta, valor, unidad }: { etiqueta: string; valor: number; unidad: string }) {
   return (
-    <View className="flex-1 rounded-2xl bg-sky-50 p-4">
-      <Text className="text-xs font-bold uppercase tracking-wider text-sky-700">{etiqueta}</Text>
-      <Text className="mt-1 text-2xl font-extrabold text-slate-900">
+    <View className="flex-1 rounded-2xl bg-epmaps-accent/10 p-4">
+      <Text className="text-xs font-bold uppercase tracking-wider text-epmaps-secondary">{etiqueta}</Text>
+      <Text className="mt-1 text-2xl font-extrabold text-epmaps-dark">
         {valor.toLocaleString('es-EC')}
         <Text className="text-sm font-semibold text-slate-500"> {unidad}</Text>
       </Text>
@@ -40,8 +40,8 @@ export function MedidorCard({ medidor, origen }: { medidor: MedidorEnCache; orig
     <Card className="gap-4">
       <View className="flex-row items-center justify-between">
         <View>
-          <Text className="text-xs font-bold uppercase tracking-wider text-slate-400">Medidor</Text>
-          <Text className="text-2xl font-extrabold tracking-tight text-slate-900">{medidor.codigo}</Text>
+          <Text className="text-xs font-bold uppercase tracking-wider text-epmaps-secondary">Medidor</Text>
+          <Text className="text-2xl font-extrabold tracking-tight text-epmaps-dark">{medidor.codigo}</Text>
         </View>
         <Badge texto={medidor.estado} tono={activo ? 'exito' : 'peligro'} />
       </View>

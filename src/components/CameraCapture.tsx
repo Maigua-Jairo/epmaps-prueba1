@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { Image, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
 
 import { useCameraPermission } from '@/hooks/useCameraPermission';
 import { eliminarFoto, persistirFoto } from '@/services/imageStorage';
@@ -66,7 +66,7 @@ export function CameraCapture({
     <View className="gap-4">
       <Card className="gap-3">
         <View className="flex-row items-center justify-between">
-          <Text className="text-lg font-bold text-slate-900">Foto del medidor</Text>
+          <Text className="text-lg font-bold text-epmaps-dark">Foto del medidor</Text>
           <Badge tono={obligatoria ? 'peligro' : 'info'} texto={obligatoria ? 'Obligatoria' : 'Opcional'} />
         </View>
         <Text className="text-sm text-slate-600">
@@ -80,36 +80,49 @@ export function CameraCapture({
             <Image
               source={{ uri: fotoUri }}
               accessibilityLabel="Foto del medidor"
-              className="w-full rounded-2xl bg-slate-200"
+              className="w-full rounded-2xl bg-epmaps-dark/10"
               style={{ aspectRatio: 3 / 4 }}
             />
             <View className="flex-row gap-3">
               <View className="flex-1">
-                <Button titulo="Tomar otra" variante="secundario" cargando={capturando} onPress={tomarFoto} />
+                <Button titulo="Tomar otra" variante="contorno" cargando={capturando} onPress={tomarFoto} />
               </View>
               {!obligatoria ? (
                 <View className="flex-1">
-                  <Button titulo="Quitar foto" variante="secundario" onPress={quitarFoto} />
+                  <Button titulo="Quitar foto" variante="contorno" onPress={quitarFoto} />
                 </View>
               ) : null}
             </View>
           </>
         ) : (
-          <Button
-            titulo={estado === 'bloqueado' ? 'Abrir Ajustes' : 'Tomar foto'}
-            cargando={capturando}
-            disabled={estado === 'cargando'}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ disabled: estado === 'cargando' || capturando, busy: capturando }}
+            disabled={estado === 'cargando' || capturando}
             onPress={estado === 'bloqueado' ? abrirAjustes : tomarFoto}
-          />
+            className={`items-center gap-1 rounded-2xl border-2 border-dashed border-epmaps-accent bg-epmaps-accent/10 p-6 active:bg-epmaps-accent/20 ${
+              estado === 'cargando' ? 'opacity-40' : ''
+            }`}>
+            {capturando ? (
+              <ActivityIndicator color="#0455BF" />
+            ) : (
+              <>
+                <Text className="text-3xl">📷</Text>
+                <Text className="text-base font-bold text-epmaps-primary">
+                  {estado === 'bloqueado' ? 'Abrir Ajustes' : 'Tomar fotografía del medidor'}
+                </Text>
+              </>
+            )}
+          </Pressable>
         )}
 
-        {errorCaptura ? <Text className="text-sm font-medium text-epmaps-danger">{errorCaptura}</Text> : null}
-        {error && !fotoUri ? <Text className="text-sm font-medium text-epmaps-danger">{error}</Text> : null}
+        {errorCaptura ? <Text className="text-sm font-semibold text-red-700">{errorCaptura}</Text> : null}
+        {error && !fotoUri ? <Text className="text-sm font-semibold text-red-700">{error}</Text> : null}
       </Card>
 
       {sinPermiso && !fotoUri ? (
-        <Card className="gap-2 border-l-4 border-amber-500">
-          <Text className="font-bold text-slate-900">La app no tiene permiso para usar la cámara</Text>
+        <Card className="gap-2 border-l-4 border-status-offline">
+          <Text className="font-bold text-epmaps-dark">La app no tiene permiso para usar la cámara</Text>
           <Text className="text-sm text-slate-600">
             Se necesita la cámara solo para fotografiar el medidor como respaldo de la lectura. No se
             usa para nada más.
@@ -117,9 +130,9 @@ export function CameraCapture({
           <Text className="text-sm text-slate-600">
             {estado === 'bloqueado'
               ? 'El permiso quedó bloqueado: actívalo en Ajustes › Permisos › Cámara.'
-              : 'Pulsa "Tomar foto" para volver a pedir el permiso.'}
+              : 'Pulsa "Tomar fotografía del medidor" para volver a pedir el permiso.'}
           </Text>
-          <Text className="text-sm font-semibold text-slate-800">
+          <Text className="text-sm font-semibold text-epmaps-dark">
             {obligatoria
               ? 'Sin la foto no puedes completar este registro.'
               : 'Como la foto es opcional, puedes continuar sin ella.'}

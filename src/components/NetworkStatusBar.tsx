@@ -1,3 +1,4 @@
+import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,9 +9,11 @@ export function NetworkStatusBar() {
   const { top } = useSafeAreaInsets();
   const { enLinea, pendientes, sincronizando, sincronizar } = useNetworkStatus();
 
-  const fondo =
-    enLinea === null ? 'bg-slate-600' : enLinea ? 'bg-emerald-700' : 'bg-amber-600';
-  const estado = enLinea === null ? 'Comprobando conexión' : enLinea ? 'En línea' : 'Sin conexión';
+  // Sobre verde y ámbar el texto va en azul oscuro: el blanco no se lee bajo el sol.
+  const comprobando = enLinea === null;
+  const fondo = comprobando ? 'bg-epmaps-dark' : enLinea ? 'bg-status-online' : 'bg-status-offline';
+  const texto = comprobando ? 'text-white' : 'text-epmaps-dark';
+  const estado = comprobando ? 'Comprobando conexión' : enLinea ? 'En línea' : 'Sin conexión';
   const cola = sincronizando
     ? 'Enviando…'
     : pendientes === 0
@@ -26,14 +29,19 @@ export function NetworkStatusBar() {
       onPress={sincronizar}
       style={{ paddingTop: top + 4 }}
       className={`flex-row items-center justify-between px-4 pb-2 ${fondo}`}>
+      <StatusBar style={comprobando ? 'light' : 'dark'} />
       <View className="flex-row items-center gap-2">
-        <View className={`h-2.5 w-2.5 rounded-full ${enLinea ? 'bg-emerald-300' : 'bg-white'}`} />
-        <Text className="text-sm font-bold text-white">{estado}</Text>
+        <View
+          className={`h-2.5 w-2.5 rounded-full ${comprobando ? 'bg-epmaps-accent' : 'bg-epmaps-dark'}`}
+        />
+        <Text className={`text-sm font-bold ${texto}`}>{estado}</Text>
       </View>
       <View className="flex-row items-center gap-2">
-        {sincronizando ? <ActivityIndicator size="small" color="#FFFFFF" /> : null}
-        <View className="rounded-full bg-black/20 px-3 py-0.5">
-          <Text className="text-xs font-bold text-white">{cola}</Text>
+        {sincronizando ? (
+          <ActivityIndicator size="small" color={comprobando ? '#FFFFFF' : '#023373'} />
+        ) : null}
+        <View className="rounded-full border border-white/40 bg-white/30 px-3 py-0.5">
+          <Text className={`text-xs font-bold ${texto}`}>{cola}</Text>
         </View>
       </View>
     </Pressable>

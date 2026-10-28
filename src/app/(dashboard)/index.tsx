@@ -5,7 +5,7 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MedidorCard } from '@/components/MedidorCard';
-import { Button, Card, Input } from '@/components/ui';
+import { Button, Card, Fondo, Input, ReflejosCabecera } from '@/components/ui';
 import { esCodigoMedidorValido, LONGITUD_CODIGO_MEDIDOR } from '@/domain/medidor.rules';
 import { useMedidorSearch } from '@/hooks/useMedidorSearch';
 import { useSession } from '@/hooks/useSession';
@@ -94,11 +94,14 @@ export default function InicioScreen() {
   };
 
   return (
-    <View className="flex-1 bg-slate-100">
-      <View style={{ paddingTop: top + 16 }} className="rounded-b-[32px] bg-epmaps-primary px-6 pb-14">
+    <Fondo>
+      <View
+        style={{ paddingTop: top + 16 }}
+        className="overflow-hidden rounded-b-[32px] bg-epmaps-dark px-6 pb-14">
+        <ReflejosCabecera />
         <View className="flex-row items-center justify-between">
           <View className="flex-1">
-            <Text className="text-sm text-white/70">Técnico en jornada</Text>
+            <Text className="text-xs font-bold uppercase tracking-widest text-epmaps-accent">Técnico en jornada</Text>
             <Text className="text-2xl font-bold text-white">{sesion?.tecnico.nombre}</Text>
             <Text className="text-sm font-medium text-white/70">{sesion?.tecnico.codigo}</Text>
           </View>
@@ -106,13 +109,13 @@ export default function InicioScreen() {
             <Pressable
               accessibilityRole="button"
               onPress={() => router.push('/lecturas')}
-              className="rounded-full bg-white px-4 py-2 active:opacity-80">
+              className="rounded-full bg-white px-4 py-3 active:opacity-90">
               <Text className="text-sm font-bold text-epmaps-primary">Mis lecturas</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
               onPress={confirmarCierre}
-              className="items-center rounded-full bg-white/15 px-4 py-2 active:bg-white/25">
+              className="items-center rounded-full border border-white/25 bg-white/15 px-4 py-3 active:bg-white/25">
               <Text className="text-sm font-semibold text-white">Salir</Text>
             </Pressable>
           </View>
@@ -125,7 +128,7 @@ export default function InicioScreen() {
         keyboardShouldPersistTaps="handled">
         <Card className="gap-4">
           <View>
-            <Text className="text-lg font-bold text-slate-900">Consultar medidor</Text>
+            <Text className="text-lg font-bold text-epmaps-dark">Consultar medidor</Text>
             <Text className="text-sm text-slate-500">Escribe el código de la etiqueta del medidor.</Text>
           </View>
           <Input
@@ -145,14 +148,14 @@ export default function InicioScreen() {
 
         {cargando ? (
           <View className="items-center py-6">
-            <ActivityIndicator size="large" color="#0067B1" />
+            <ActivityIndicator size="large" color="#0455BF" />
           </View>
         ) : null}
 
         {error ? (
-          <Card className="gap-3 border-l-4 border-epmaps-danger">
+          <Card className="gap-3 border-l-4 border-status-danger">
             <View>
-              <Text className="font-semibold text-slate-900">No se pudo mostrar el medidor</Text>
+              <Text className="font-semibold text-epmaps-dark">No se pudo mostrar el medidor</Text>
               <Text className="mt-1 text-sm text-slate-600">{error}</Text>
             </View>
             {/* R4: sin señal se puede registrar de todos modos. */}
@@ -174,6 +177,6 @@ export default function InicioScreen() {
           </>
         ) : null}
       </ScrollView>
-    </View>
+    </Fondo>
   );
 }

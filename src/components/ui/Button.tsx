@@ -1,15 +1,17 @@
 import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
 
-type Variante = 'primario' | 'secundario' | 'peligro';
+type Variante = 'primario' | 'secundario' | 'contorno' | 'peligro';
 
 const estilos: Record<Variante, { boton: string; texto: string; spinner: string }> = {
   primario: { boton: 'bg-epmaps-primary', texto: 'text-white', spinner: '#FFFFFF' },
-  secundario: {
-    boton: 'border-2 border-epmaps-primary bg-white',
+  secundario: { boton: 'bg-epmaps-secondary', texto: 'text-white', spinner: '#FFFFFF' },
+  // Vidrio con borde: acciones de menor peso dentro de una tarjeta.
+  contorno: {
+    boton: 'border-2 border-epmaps-primary/40 bg-white/60',
     texto: 'text-epmaps-primary',
-    spinner: '#0067B1',
+    spinner: '#0455BF',
   },
-  peligro: { boton: 'bg-epmaps-danger', texto: 'text-white', spinner: '#FFFFFF' },
+  peligro: { boton: 'bg-status-danger', texto: 'text-white', spinner: '#FFFFFF' },
 };
 
 interface ButtonProps extends Omit<PressableProps, 'children'> {
@@ -18,6 +20,7 @@ interface ButtonProps extends Omit<PressableProps, 'children'> {
   cargando?: boolean;
 }
 
+/** Botón institucional; 56 px de alto, por encima del mínimo táctil de 44 px. */
 export function Button({ titulo, variante = 'primario', cargando, disabled, ...rest }: ButtonProps) {
   const estilo = estilos[variante];
   const inactivo = disabled || cargando;
@@ -26,7 +29,7 @@ export function Button({ titulo, variante = 'primario', cargando, disabled, ...r
       accessibilityRole="button"
       accessibilityState={{ disabled: !!inactivo, busy: !!cargando }}
       disabled={inactivo}
-      className={`h-14 items-center justify-center rounded-2xl px-5 active:opacity-80 ${estilo.boton} ${disabled ? 'opacity-40' : ''}`}
+      className={`h-14 items-center justify-center rounded-2xl px-5 active:opacity-90 ${estilo.boton} ${disabled ? 'opacity-40' : ''}`}
       {...rest}>
       {cargando ? (
         <ActivityIndicator color={estilo.spinner} />

@@ -3,7 +3,6 @@ import '@/global.css';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
-import { StatusBar } from 'expo-status-bar';
 import { useEffect, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { SafeAreaInsetsContext, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +19,6 @@ export default function RootLayout() {
     <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
       <NetworkProvider>
         <SessionProvider>
-          <StatusBar style="light" />
           <View className="flex-1">
             {/* R9: la barra está sobre el navegador, así aparece en todas las pantallas. */}
             <NetworkStatusBar />

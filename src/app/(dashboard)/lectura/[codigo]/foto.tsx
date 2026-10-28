@@ -5,7 +5,7 @@ import { ScrollView, View } from 'react-native';
 
 import { CameraCapture } from '@/components/CameraCapture';
 import { RegistroHeader } from '@/components/RegistroHeader';
-import { Button } from '@/components/ui';
+import { Button, Fondo } from '@/components/ui';
 import { useRegistro } from '@/hooks/useLecturaForm';
 
 /** Paso 3: foto del medidor, obligatoria u opcional según R7. */
@@ -29,7 +29,7 @@ export default function FotoScreen() {
   };
 
   return (
-    <View className="flex-1 bg-slate-100">
+    <Fondo>
       <RegistroHeader paso={3} titulo="Foto de respaldo" />
       <ScrollView contentContainerClassName="gap-4 p-4 pb-10">
         <Controller
@@ -56,6 +56,6 @@ export default function FotoScreen() {
           onPress={continuar}
         />
       </ScrollView>
-    </View>
+    </Fondo>
   );
 }

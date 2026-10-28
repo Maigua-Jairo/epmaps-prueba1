@@ -3,7 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 
-import { Button, Card } from '@/components/ui';
+import { Button, Card, Fondo } from '@/components/ui';
 import { obtenerBorrador, type Borrador } from '@/database/repositories/borradorRepository';
 import { obtenerLectura } from '@/database/repositories/lecturaRepository';
 import { obtenerMedidorEnCache } from '@/database/repositories/medidorRepository';
@@ -50,24 +50,24 @@ export default function RegistroLayout() {
 
   if (!carga) {
     return (
-      <View className="flex-1 items-center justify-center bg-slate-100">
-        <ActivityIndicator size="large" color="#0067B1" />
-      </View>
+      <Fondo className="items-center justify-center">
+        <ActivityIndicator size="large" color="#0455BF" />
+      </Fondo>
     );
   }
 
   if (carga.original && carga.original.estadoEnvio !== 'PENDIENTE') {
     return (
-      <View className="flex-1 justify-center bg-slate-100 p-6">
+      <Fondo className="justify-center p-6">
         <Card className="gap-4">
-          <Text className="text-lg font-bold text-slate-900">No se puede corregir</Text>
+          <Text className="text-lg font-bold text-epmaps-dark">No se puede corregir</Text>
           <Text className="text-sm text-slate-600">
             Esta lectura ya se envió al sistema de la oficina. Solo se pueden corregir las lecturas
             que aún no se envían.
           </Text>
-          <Button titulo="Volver" variante="secundario" onPress={volver} />
+          <Button titulo="Volver" variante="contorno" onPress={volver} />
         </Card>
-      </View>
+      </Fondo>
     );
   }
 

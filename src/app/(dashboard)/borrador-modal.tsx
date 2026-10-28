@@ -66,13 +66,13 @@ export default function BorradorModal() {
   if (!borrador) return null;
 
   return (
-    <View className="flex-1 justify-center bg-black/60 p-6">
-      <View className="gap-5 rounded-[28px] bg-white p-6">
-        <View className="h-14 w-14 items-center justify-center rounded-2xl bg-amber-100">
+    <View className="flex-1 justify-center bg-epmaps-dark/70 p-6">
+      <View className="gap-5 rounded-[28px] border border-white bg-white/95 p-6">
+        <View className="h-14 w-14 items-center justify-center rounded-2xl bg-status-offline/20">
           <Text className="text-2xl">📝</Text>
         </View>
         <View className="gap-1">
-          <Text className="text-2xl font-extrabold text-slate-900">Registro sin terminar</Text>
+          <Text className="text-2xl font-extrabold text-epmaps-dark">Registro sin terminar</Text>
           <Text className="text-sm text-slate-500">
             La aplicación se cerró mientras registrabas una lectura. ¿Quieres continuar donde lo
             dejaste o descartarlo?
@@ -80,8 +80,8 @@ export default function BorradorModal() {
         </View>
 
         {borrador ? (
-          <View className="gap-2 rounded-2xl bg-slate-50 p-4">
-            <Text className="text-lg font-bold text-slate-900">{borrador.codigoMedidor}</Text>
+          <View className="gap-2 rounded-2xl bg-epmaps-accent/10 p-4">
+            <Text className="text-lg font-bold text-epmaps-dark">{borrador.codigoMedidor}</Text>
             <Text className="text-sm text-slate-600">
               {borrador.lecturaId !== null ? 'Corrección de una lectura' : 'Lectura nueva'} · quedó en{' '}
               <Text className="font-semibold">{ETIQUETA_PASO[borrador.paso]}</Text>
@@ -93,7 +93,7 @@ export default function BorradorModal() {
                 {borrador.datos.fotoUri ? ' · con foto' : ''}
               </Text>
             ) : null}
-            <Text className="text-xs text-slate-400">Último cambio: {actualizado}</Text>
+            <Text className="text-xs text-slate-500">Último cambio: {actualizado}</Text>
           </View>
         ) : null}
 

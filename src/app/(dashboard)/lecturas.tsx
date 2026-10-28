@@ -5,7 +5,7 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LecturaItem } from '@/components/LecturaItem';
-import { Card } from '@/components/ui';
+import { Card, Fondo, ReflejosCabecera } from '@/components/ui';
 import { listarLecturasDeTecnico } from '@/database/repositories/lecturaRepository';
 import type { Lectura } from '@/domain/types';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
@@ -29,13 +29,16 @@ export default function MisLecturasScreen() {
   );
 
   return (
-    <View className="flex-1 bg-slate-100">
-      <View style={{ paddingTop: top + 8 }} className="rounded-b-[32px] bg-epmaps-primary px-5 pb-6">
+    <Fondo>
+      <View
+        style={{ paddingTop: top + 8 }}
+        className="overflow-hidden rounded-b-[32px] bg-epmaps-dark px-5 pb-6">
+        <ReflejosCabecera />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Volver"
           onPress={volver}
-          className="h-10 w-10 items-center justify-center rounded-full bg-white/15 active:bg-white/25">
+          className="h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/15 active:bg-white/25">
           <Text className="text-xl font-bold text-white">‹</Text>
         </Pressable>
         <Text className="mt-4 text-2xl font-extrabold text-white">Mis lecturas</Text>
@@ -70,6 +73,6 @@ export default function MisLecturasScreen() {
           </Card>
         }
       />
-    </View>
+    </Fondo>
   );
 }
