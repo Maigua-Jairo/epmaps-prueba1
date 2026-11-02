@@ -18,7 +18,7 @@ let borradorOfrecido = false;
 /** Identificación y consulta del medidor (R2, R3). */
 export default function InicioScreen() {
   const { top } = useSafeAreaInsets();
-  const { sesion, cerrarSesion } = useSession();
+  const { sesion, correo, cerrarSesion } = useSession();
   const { medidor, origen, cargando, error, sinConexion, buscar, limpiar } = useMedidorSearch();
   const [codigo, setCodigo] = useState('');
   const [errorCodigo, setErrorCodigo] = useState<string | null>(null);
@@ -100,11 +100,17 @@ export default function InicioScreen() {
         <ReflejosCabecera />
         <View className="flex-row items-center justify-between">
           <View className="flex-1">
-            <Text className="text-xs font-bold uppercase tracking-widest text-epmaps-accent">Técnico en jornada</Text>
+            <Text className="text-xs font-bold uppercase tracking-widest text-epmaps-accent">Cuenta en jornada</Text>
             <Text className="text-2xl font-bold text-white">{sesion?.tecnico.nombre}</Text>
-            <Text className="text-sm font-medium text-white/70">{sesion?.tecnico.codigo}</Text>
+            <Text className="text-sm font-medium text-white/70">{correo}</Text>
           </View>
           <View className="gap-2">
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push('/perfil')}
+              className="items-center rounded-full bg-white px-4 py-3 active:opacity-90">
+              <Text className="text-sm font-bold text-epmaps-primary">Mi perfil</Text>
+            </Pressable>
             <Pressable
               accessibilityRole="button"
               onPress={() => router.push('/lecturas')}

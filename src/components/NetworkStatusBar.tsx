@@ -1,5 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
@@ -8,6 +17,29 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 export function NetworkStatusBar() {
   const { top } = useSafeAreaInsets();
   const { enLinea, pendientes, sincronizando, sincronizar } = useNetworkStatus();
+  const pulso = useSharedValue(0);
+  const segundoPulso = useSharedValue(0);
+  const activo = enLinea === true && (sincronizando || pendientes > 0);
+
+  useEffect(() => {
+    const repetir = () =>
+      withRepeat(
+        withSequence(withTiming(1, { duration: 900 }), withTiming(0, { duration: 0 })),
+        -1,
+        false,
+      );
+    pulso.value = activo ? repetir() : 0;
+    segundoPulso.value = activo ? withDelay(450, repetir()) : 0;
+  }, [activo, pulso, segundoPulso]);
+
+  const estiloPulso = useAnimatedStyle(() => ({
+    opacity: 0.6 * (1 - pulso.value),
+    transform: [{ scale: 1 + pulso.value * 1.5 }],
+  }));
+  const estiloSegundoPulso = useAnimatedStyle(() => ({
+    opacity: 0.6 * (1 - segundoPulso.value),
+    transform: [{ scale: 1 + segundoPulso.value * 1.5 }],
+  }));
 
   // Sobre verde y ámbar el texto va en azul oscuro: el blanco no se lee bajo el sol.
   const comprobando = enLinea === null;
@@ -31,9 +63,25 @@ export function NetworkStatusBar() {
       className={`flex-row items-center justify-between px-4 pb-2 ${fondo}`}>
       <StatusBar style={comprobando ? 'light' : 'dark'} />
       <View className="flex-row items-center gap-2">
-        <View
-          className={`h-2.5 w-2.5 rounded-full ${comprobando ? 'bg-epmaps-accent' : 'bg-epmaps-dark'}`}
-        />
+        <View className="h-3 w-3 items-center justify-center">
+          {activo ? (
+            <>
+              <Animated.View
+                style={estiloPulso}
+                className="absolute h-3 w-3 rounded-full bg-status-online"
+              />
+              <Animated.View
+                style={estiloSegundoPulso}
+                className="absolute h-3 w-3 rounded-full bg-status-online"
+              />
+            </>
+          ) : null}
+          <View
+            className={`h-2.5 w-2.5 rounded-full ${
+              comprobando ? 'bg-epmaps-accent' : enLinea ? 'bg-status-online' : 'bg-status-offline'
+            }`}
+          />
+        </View>
         <Text className={`text-sm font-bold ${texto}`}>{estado}</Text>
       </View>
       <View className="flex-row items-center gap-2">

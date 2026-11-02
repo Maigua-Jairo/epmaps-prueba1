@@ -1,6 +1,6 @@
 # Guía de Diseño Visual e Identidad EPMAPS-Lecturas
 
-Este documento define la guía de diseño visual, paleta de colores, tipografía, marcas de identidad y extensiones de estilo para la aplicación **epmaps-lecturas-app**, desarrollada en React Native y NativeWind (Tailwind CSS).
+Este documento define la guía de diseño visual, paleta de colores, tipografía, marcas de identidad y extensiones de estilo para la aplicación **epmaps-lecturas-app**, desarrollada en React Native y UniWind (Tailwind CSS 4).
 
 ---
 
@@ -18,34 +18,24 @@ La paleta se compone de tonos azulados e hídricos adecuados para el contexto op
 
 ---
 
-## 2. Configuración para NativeWind (`tailwind.config.js`)
+## 2. Configuración para UniWind (`src/global.css`)
 
-Agrega esta extensión de colores a tu archivo `tailwind.config.js` para usar las clases utilitarias directamente en la interfaz:
+Declara la paleta en el bloque `@theme` del archivo CSS de entrada para usar las clases utilitarias directamente en la interfaz:
 
-```javascript
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: ["./app/**/*.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        epmaps: {
-          dark: '#023373',      // bg-epmaps-dark, text-epmaps-dark
-          primary: '#0455BF',   // bg-epmaps-primary, border-epmaps-primary
-          secondary: '#0A6ABF', // bg-epmaps-secondary
-          accent: '#22B7F2',    // text-epmaps-accent, border-epmaps-accent
-          bg: '#F2F2F2',        // bg-epmaps-bg
-        },
-        // Colores semánticos adicionales de estado operativo
-        status: {
-          online: '#10B981',    // Verde para estado sincronizado
-          offline: '#F59E0B',   // Amarillo/Naranja para pendiente de envío (R9)
-          danger: '#EF4444',    // Rojo para medidor dañado / anomalía (R6)
-        }
-      },
-    },
-  },
-  plugins: [],
+```css
+@import 'tailwindcss';
+@import 'uniwind';
+
+@theme {
+  --color-epmaps-dark: #023373;      /* bg-epmaps-dark, text-epmaps-dark */
+  --color-epmaps-primary: #0455BF;   /* bg-epmaps-primary, border-epmaps-primary */
+  --color-epmaps-secondary: #0A6ABF; /* bg-epmaps-secondary */
+  --color-epmaps-accent: #22B7F2;    /* text-epmaps-accent, border-epmaps-accent */
+  --color-epmaps-bg: #F2F2F2;        /* bg-epmaps-bg */
+
+  --color-status-online: #10B981;
+  --color-status-offline: #F59E0B;
+  --color-status-danger: #EF4444;
 }
 ```
 

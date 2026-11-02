@@ -11,7 +11,7 @@
 | ADR | Decisión | Requisitos | Estado |
 |---|---|---|---|
 | [ADR-001](#adr-001) | Usar Expo Router para la navegación y separar las rutas con y sin sesión | R1, R8 | Aceptado |
-| [ADR-002](#adr-002) | Guardar la sesión del técnico con `expo-secure-store` | R1 | Aceptado |
+| [ADR-002](#adr-002) | Autenticar usuarios con Firebase Authentication y exigir correo verificado | R1 | Aceptado |
 | [ADR-003](#adr-003) | Usar `expo-sqlite` para los datos locales del teléfono | R3, R4, R8, R9, R10 | Aceptado |
 | [ADR-004](#adr-004) | Consultar la oficina con `fetch` nativo y reutilizar la caché de SQLite durante la jornada | R2, R3, R4 | Aceptado |
 | [ADR-005](#adr-005) | Compartir el estado entre pantallas con React Context y un formulario único en el layout del registro | R5, R6, R8, R9 | Aceptado |
@@ -19,7 +19,9 @@
 | [ADR-007](#adr-007) | Manejar el formulario de lectura con `react-hook-form` | R5, R6, R7 | Aceptado |
 | [ADR-008](#adr-008) | Capturar la foto con `expo-image-picker` y conservarla con `expo-file-system` | R7 | Aceptado |
 | [ADR-009](#adr-009) | Detectar la conexión con NetInfo y enviar con una cola idempotente por clave medidor-mes | R4, R9, R10 | Aceptado |
-| [ADR-010](#adr-010) | Usar NativeWind para los estilos | Diseño no genérico (sanción del enunciado) | Aceptado |
+| [ADR-010](#adr-010) | Usar UniWind para los estilos | Diseño no genérico (sanción del enunciado) | Aceptado |
+| [ADR-011](#adr-011) | Mostrar fortaleza estimada de contraseña durante el registro | HU autenticación, Fase 1 | Aceptado |
+| [ADR-012](#adr-012) | Permitir actualizar el nombre de perfil con Firebase Auth | HU autenticación, Fase 2 | Aceptado |
 
 ---
 
@@ -30,7 +32,8 @@ Expo al generar el proyecto.
 
 | Dependencia | ¿La trae la plantilla de Expo SDK 57? | Justificada en |
 |---|---|---|
-| `expo-secure-store` | No | [ADR-002](#adr-002) |
+| `firebase` | No | [ADR-002](#adr-002) |
+| `@react-native-async-storage/async-storage` | No | [ADR-002](#adr-002) (persistencia de Firebase Auth en React Native) |
 | `expo-sqlite` | No | [ADR-003](#adr-003) |
 | `@react-native-community/netinfo` | No | [ADR-009](#adr-009) |
 | `expo-image-picker` | No | [ADR-008](#adr-008) |
@@ -38,9 +41,9 @@ Expo al generar el proyecto.
 | `zod` | No | [ADR-006](#adr-006) |
 | `react-hook-form` | No | [ADR-007](#adr-007) |
 | `@hookform/resolvers` | No | [ADR-007](#adr-007) (conecta `react-hook-form` con Zod) |
-| `nativewind` | No | [ADR-010](#adr-010) |
+| `uniwind` | No | [ADR-010](#adr-010) |
 | `tailwindcss` (dev) | No | [ADR-010](#adr-010) |
-| `babel-preset-expo` | No (viene anidado dentro de `expo`) | [ADR-010](#adr-010) (NativeWind exige declararlo en `babel.config.js`) |
+| `babel-preset-expo` | No (viene anidado dentro de `expo`) | [ADR-010](#adr-010) (preset estándar de Expo) |
 | `expo-font` | Sí | No requiere ADR |
 | `react-dom` | Sí | No requiere ADR |
 | `expo`, `expo-router`, `expo-constants`, `expo-linking`, `expo-splash-screen`, `expo-status-bar`, `react`, `react-native`, `react-native-reanimated`, `react-native-worklets`, `react-native-safe-area-context`, `react-native-screens`, `typescript`, `@types/react` | Sí | No requiere ADR |
@@ -108,57 +111,63 @@ red requerida por los técnicos (R9).
 
 <a id="adr-002"></a>
 
-## ADR-002: Guardar la sesión del técnico con `expo-secure-store`
+## ADR-002: Autenticar usuarios con Firebase Authentication y exigir correo verificado
 
 **Estado:** Aceptado
 
 **Fecha:** 28/10/2026
 
-**Requisitos relacionados:** R1, el técnico se identifica con código y clave, y la sesión se mantiene
-hasta que la cierre.
+**Requisitos relacionados:** R1, el usuario inicia sesión con correo y contraseña, mantiene la sesión
+hasta cerrarla y verifica el correo antes de acceder al registro de lecturas.
 
 ### Contexto
 
-La app debe mantener la sesión iniciada mientras el técnico no la haya cerrado, aunque cierre la
-aplicación o reinicie el teléfono. Los datos que deben sobrevivir son los del técnico (código, nombre)
-y la hora de inicio de la sesión; la clave no se guarda, solo se usa al ingresar. Aun así, son datos
-que identifican al técnico, por lo que se requiere que se guarden cifrados en el dispositivo. Cuando
-el técnico cierra la sesión, la aplicación elimina los datos guardados.
+La autenticación debe aceptar correos de cualquier proveedor, permitir crear cuentas y recuperar la
+contraseña, y evitar el acceso a la app antes de verificar el correo. La sesión debe persistir al
+cerrar y volver a abrir la app. El registro local necesita un identificador estable para asociar
+lecturas y borradores al usuario autenticado; Firebase UID cumple esa función sin almacenar la clave
+en la aplicación.
 
 ### Alternativas consideradas
 
 | Alternativa | Ventajas en este proyecto | Desventajas en este proyecto |
 |---|---|---|
-| `expo-secure-store` | Los datos no se guardan en texto plano: Android los cifra con su Keystore. Es compatible con SDK 57 y funciona en Expo Go sin escribir código nativo. También funciona en los casos de pérdida de conexión o cierres abruptos, manteniendo los datos intactos. | Tiene un límite de almacenamiento (unos 2 KB por clave), por lo que no sirve para guardar datos como los medidores o las lecturas. |
-| MMKV | Mantiene un flujo sincrónico y rápido. Admite cifrado AES si se configura con una clave de cifrado. | Se debe gestionar manualmente la clave de cifrado. Tiene código nativo que no viene en Expo Go, por lo que no se podría probar sin una build de desarrollo. |
-| AsyncStorage | Es fácil de utilizar y tiene una amplia documentación en internet. Admite datos de más de 2 KB. | No posee seguridad alguna: guarda los datos en texto plano, por lo que cualquiera con acceso a los archivos de la app puede leer la sesión. |
+| Firebase Authentication (SDK JavaScript) | Resuelve registro, inicio, verificación y recuperación por correo; su persistencia para React Native permite restaurar la sesión. Funciona con Expo Go. | Requiere configurar el proyecto y proveedor en Firebase. La app móvil no puede certificar por sí sola que una cuenta pertenece a un técnico autorizado. |
+| Autenticación local propia | No depende de un proveedor externo. | Exige mantener credenciales y validaciones propias y no aporta verificación de correo ni recuperación segura. |
+| React Native Firebase | Ofrece integración nativa con Firebase. | Requiere una build de desarrollo y configuración nativa, innecesaria para este flujo del taller. |
 
 ### Decisión
 
-Se elige `expo-secure-store` porque es compatible con SDK 57 y su cifrado permite guardar la sesión de
-forma segura en el sistema sin necesidad de instalar dependencias extras con código nativo propio.
+Se elige Firebase Authentication con el SDK JavaScript. La app usa correo/contraseña; al registrarse,
+guarda `displayName`, envía `sendEmailVerification` y cierra la sesión. Un usuario con
+`emailVerified === false` no entra a las rutas protegidas. La recuperación usa `sendPasswordResetEmail`.
+La persistencia de autenticación se configura con
+`getReactNativePersistence(AsyncStorage)` de `@react-native-async-storage/async-storage`; la versión
+de AsyncStorage debe coincidir con la incluida en el SDK de Expo para que Firebase pueda acceder al
+almacenamiento nativo. Las lecturas/borradores locales se particionan por Firebase UID.
 
 ### Consecuencias
 
-- La sesión sobrevive al cierre de la app y al reinicio del teléfono, y se borra solo al cerrar sesión.
-- La lectura de la sesión es asíncrona: mientras se lee, la app mantiene la pantalla de carga para no
-  mostrar el login por un instante.
-- Por el límite de tamaño, los demás datos (medidores, lecturas, borrador) deben guardarse en otro lado
-  (ver [ADR-003](#adr-003)).
+- La sesión persiste al reiniciar la app y se elimina al cerrar sesión.
+- Firebase configura y administra la persistencia; la contraseña no se guarda en el código ni en SQLite.
+- El UID se usa como identificador del usuario local para las lecturas y borradores (ver [ADR-003](#adr-003)).
+- Verificar el correo habilita el acceso, pero no equivale a comprobar que la persona esté autorizada
+  como técnico. Una autorización de producción debe validarse en un servidor o mediante cuentas
+  provisionadas por la organización.
 
 ### Verificación
 
-- En la carpeta `src/app/(auth)` viven las pantallas relacionadas con el inicio de sesión, y en
-  `src/services/sessionStorage.ts` el guardado de la sesión.
-- El técnico, al cerrar la aplicación y volver a ingresar, mantiene su sesión activa.
+- Las pantallas de acceso, registro y recuperación están en `src/app/(auth)`, y la integración con
+  Firebase está en `src/context/sesion.tsx`.
+- Una cuenta no verificada permanece en las rutas de autenticación; al verificarla e iniciar sesión,
+  puede entrar al dashboard.
 - Al cerrar sesión y volver a abrir la app, aparece el login.
 
 ### Uso de IA
 
-Se le pidió a la IA comparar `expo-secure-store` con MMKV y AsyncStorage para una aplicación que
-requiere mantener una sesión activa. La IA sugirió utilizar `expo-secure-store`, siendo la misma
-decisión tomada anteriormente. Se aceptó su sugerencia de guardar la sesión en el almacenamiento
-seguro, manteniéndola fuera de la base de datos.
+Se revisó el taller de Firebase Authentication para React Native y se adoptó el SDK JavaScript
+porque permite completar el flujo de correo y verificación en Expo Go, sin servidor de autenticación
+propio ni módulos nativos adicionales.
 
 ---
 
@@ -580,11 +589,11 @@ aceptaron ambas propuestas.
 
 <a id="adr-010"></a>
 
-## ADR-010: Usar NativeWind para los estilos
+## ADR-010: Usar UniWind para los estilos
 
 **Estado:** Aceptado
 
-**Fecha:** 28/10/2026
+**Fecha:** 02/11/2026
 
 **Requisitos relacionados:** Ninguno en particular; el enunciado sanciona con 5 puntos un diseño
 genérico.
@@ -601,19 +610,24 @@ de EPMAPS (`Skills/epmaps_design_system.md`): azul institucional, colores de est
 
 | Alternativa | Ventajas en este proyecto | Desventajas en este proyecto |
 |---|---|---|
-| NativeWind | Los colores de la guía se definen una sola vez en `tailwind.config.js` y se usan con clases en todas las pantallas. Permite transparencias (`bg-white/75`) para el efecto de vidrio. | Exige tres dependencias (`nativewind`, `tailwindcss` y `babel-preset-expo`) y configurar Babel y Metro. |
+| UniWind | Conserva las clases `className` en todas las pantallas, permite transparencias (`bg-white/75`) y define la paleta con `@theme` en CSS. | Requiere Tailwind CSS 4 y su configuración Metro específica. |
+| NativeWind | Ya estaba integrado y tiene el mismo modelo de utilidades. | Requiere su preset Babel y configuración Metro propios. |
 | `StyleSheet` de React Native | Viene incluido y no agrega dependencias. | Los colores y espaciados se repiten en cada archivo o hay que armar un sistema de temas propio. |
 
 ### Decisión
 
-Se elige NativeWind con la paleta de la guía de EPMAPS. Las piezas comunes (botón, tarjeta, campo,
-etiqueta y fondo) están en `src/components/ui`. El efecto de vidrio se logra con tarjetas blancas
-translúcidas sobre un fondo con manchas de agua, sin librerías de desenfoque, porque el vidrio real
-de Expo solo funciona en iOS.
+Se migra a UniWind con Tailwind CSS 4 y se conserva la API `className` en las pantallas y piezas
+comunes (`src/components/ui`). La paleta EPMAPS se declara en `src/global.css` mediante `@theme`;
+Metro procesa ese CSS con UniWind. Los estilos dinámicos de React Native y las animaciones Reanimated
+se mantienen como `style`/shared values, sin convertir sus valores de ejecución en clases generadas.
+El efecto de vidrio se logra con tarjetas blancas translúcidas sobre un fondo con manchas de agua,
+sin librerías de desenfoque, porque el vidrio real de Expo solo funciona en iOS.
 
 ### Consecuencias
 
-- Cambiar un color de la guía se hace en un solo archivo.
+- Cambiar un color de la guía se hace en `src/global.css`.
+- Tailwind CSS 4 y UniWind reemplazan NativeWind; ya no se usa un `tailwind.config.js` ni el preset
+  Babel de NativeWind.
 - Se usa la tipografía del sistema: una prueba con fuentes personalizadas y librería de íconos dejó la
   app congelada en la pantalla de carga y se revirtió.
 - Se ajustaron dos colores de la guía por su regla de contraste: la barra de conexión usa texto azul
@@ -621,14 +635,88 @@ de Expo solo funciona en iOS.
 
 ### Verificación
 
-- En `tailwind.config.js` están los colores `epmaps` y `status` de la guía.
+- En `src/global.css` están los colores `epmaps` y `status` de la guía.
 - Todas las pantallas usan el mismo fondo, cabecera azul oscuro y tarjetas de vidrio.
 - Los botones miden al menos 44 px de alto y cada estado tiene su texto ("Sin conexión", "Consumo
   anómalo", "Dañado").
 
 ### Uso de IA
 
-Se le pidió a la IA aplicar la guía de diseño de EPMAPS con NativeWind. La IA aplicó la paleta y el
-estilo de vidrio sin agregar dependencias, y propuso cambiar dos colores por contraste bajo el sol. Se
-aceptó. Antes, una propuesta de la IA con fuentes e íconos congeló la pantalla de carga y se decidió
-revertirla.
+Se le pidió a la IA migrar la guía de diseño de EPMAPS desde NativeWind a UniWind sin alterar la
+paleta, los estilos dinámicos ni las animaciones. Se mantuvo la API de clases y se trasladó la
+configuración de colores a CSS.
+
+---
+
+<a id="adr-012"></a>
+
+## ADR-012: Permitir actualizar el nombre de perfil con Firebase Auth
+
+**Estado:** Aceptado
+
+**Fecha:** 02/11/2026
+
+**Requisitos relacionados:** HU de autenticación, Fase 2: permitir al usuario conectado modificar su
+`displayName`.
+
+### Contexto
+
+El nombre introducido al crear la cuenta debe poder actualizarse posteriormente desde una pantalla
+protegida para usuarios autenticados. El cambio debe mantenerse en el perfil remoto de Firebase y
+reflejarse inmediatamente en la interfaz.
+
+### Decisión
+
+La pantalla `src/app/(dashboard)/perfil.tsx` ofrece la edición del nombre y el contexto de sesión
+ejecuta `updateProfile` mediante `actualizarNombre`. Tras la operación exitosa, el contexto actualiza
+el estado del nombre para que las pantallas reflejen el nuevo valor sin reiniciar la sesión.
+
+### Consecuencias
+
+- El cambio de nombre requiere conexión con Firebase y una sesión activa.
+- El correo y otros datos del perfil no se modifican.
+- Un nombre vacío no se envía a Firebase.
+
+### Verificación
+
+- Desde el dashboard se puede abrir Mi perfil, cambiar el nombre y guardar.
+- Tras guardar, el nombre nuevo aparece inmediatamente en la cabecera del dashboard.
+- Si Firebase devuelve un error, se muestra un mensaje en español y no se presenta el cambio como exitoso.
+
+---
+
+<a id="adr-011"></a>
+
+## ADR-011: Mostrar fortaleza estimada de contraseña durante el registro
+
+**Estado:** Aceptado
+
+**Fecha:** 02/11/2026
+
+**Requisitos relacionados:** HU de autenticación, Fase 1: informar si la contraseña es débil, media o fuerte mientras se escribe.
+
+### Contexto
+
+La persona necesita retroalimentación inmediata para elegir una contraseña más robusta. El indicador
+debe funcionar mientras escribe, sin enviar la contraseña a un servicio externo ni agregar otra
+dependencia.
+
+### Decisión
+
+Se calcula una estimación local en `src/domain/passwordStrength.ts` a partir de longitud y variedad
+de caracteres. Se muestra como débil, media o fuerte debajo del campo de contraseña en el registro.
+El indicador es orientativo: Firebase sigue siendo responsable de aceptar o rechazar la contraseña.
+
+### Consecuencias
+
+- La contraseña permanece en el dispositivo durante la evaluación y no se transmite para calcular la
+  fortaleza.
+- Una contraseña de al menos 8 caracteres con dos grupos de caracteres se considera media; para ser
+  fuerte requiere al menos 12 caracteres y tres grupos. Los grupos son minúsculas, mayúsculas,
+  números y símbolos.
+- El indicador no sustituye las políticas de contraseña configuradas en Firebase.
+
+### Verificación
+
+- Al escribir, el estado cambia de débil a medio y fuerte cuando se cumplen los criterios descritos.
+- Al borrar el campo, el indicador desaparece.

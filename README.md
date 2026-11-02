@@ -1,56 +1,44 @@
-# Welcome to your Expo app 👋
+# EPMAPS Lecturas
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicación móvil para registrar lecturas de medidores de agua en campo. Está construida con Expo,
+React Native, TypeScript y Expo Router; SQLite permite consultar y registrar lecturas sin conexión.
 
-## Get started
+## Inicio rápido
 
-1. Install dependencies
+1. Instala las dependencias:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Copia `.env.example` como `.env` y configura los valores de Firebase y MockAPI. Las variables
+   `EXPO_PUBLIC_FIREBASE_*` se obtienen al registrar una aplicación web en Firebase Console. No
+   compartas ni confirmes el archivo `.env`.
+3. En Firebase Console, habilita el proveedor de autenticación **Correo electrónico/contraseña**.
+   La app envía un correo de verificación al crear una cuenta y solo permite iniciar sesión después
+   de verificarlo.
+4. Inicia Expo:
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+Desde la terminal de Expo puedes abrir la aplicación en un dispositivo o emulador Android/iOS.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Funcionalidades
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Registro con correo y contraseña, verificación de correo y recuperación de contraseña.
+- Edición del nombre de perfil asociado a la cuenta Firebase.
+- Indicador de seguridad de contraseña durante el registro.
+- Consulta de medidores, registro de lecturas, captura de fotos y borradores locales.
+- Cola de sincronización para lecturas pendientes cuando vuelve la conexión.
 
-## Get a fresh project
-
-When you're ready, run:
+## Comprobaciones
 
 ```bash
-npm run reset-project
+npm run typecheck
+npm run lint
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+La navegación se define bajo `src/app`. Los componentes, la autenticación, el dominio y los servicios
+se mantienen fuera de esa carpeta para que Expo Router no los interprete como pantallas.

@@ -1,3 +1,14 @@
+/**
+ * Layout raíz: es lo primero que se ejecuta al abrir la app.
+ *
+ * Responsabilidades:
+ *   1. Cargar las fuentes.
+ *   2. Envolver la app en el ProveedorSesion (para que todas las pantallas
+ *      conozcan al usuario).
+ *   3. Decidir qué pantallas existen según haya o no sesión (Stack.Protected).
+ *   4. Mantener visible la pantalla de carga (splash) hasta tener todo listo.
+ */
+
 import '@/global.css';
 
 import { Stack } from 'expo-router';
@@ -5,9 +16,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
 import { useEffect, type ReactNode } from 'react';
 import { View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaInsetsContext, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { NetworkStatusBar } from '@/components/NetworkStatusBar';
+import { ToastProvider } from '@/components/ToastProvider';
 import { DATABASE_NAME, initDatabase } from '@/database/client';
 import { NetworkProvider } from '@/hooks/useNetworkStatus';
 import { SessionProvider, useSession } from '@/hooks/useSession';
@@ -16,19 +29,35 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
-    <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
-      <NetworkProvider>
-        <SessionProvider>
-          <View className="flex-1">
-            {/* R9: la barra está sobre el navegador, así aparece en todas las pantallas. */}
-            <NetworkStatusBar />
-            <SinMargenSuperior>
-              <RootNavigator />
-            </SinMargenSuperior>
-          </View>
-        </SessionProvider>
-      </NetworkProvider>
-    </SQLiteProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
+        <ToastProvider>
+          <SessionProvider>
+            <AppShell />
+          </SessionProvider>
+        </ToastProvider>
+      </SQLiteProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+function AppShell() {
+  const { sesion, cargando } = useSession();
+  const autenticado = !cargando && sesion !== null;
+
+  return (
+    <NetworkProvider key={autenticado ? 'authenticated' : 'unauthenticated'} enabled={autenticado}>
+      <View className="flex-1">
+        {autenticado ? <NetworkStatusBar /> : null}
+        {autenticado ? (
+          <SinMargenSuperior>
+            <RootNavigator />
+          </SinMargenSuperior>
+        ) : (
+          <RootNavigator />
+        )}
+      </View>
+    </NetworkProvider>
   );
 }
 

@@ -1,8 +1,10 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 
+import { CampoValidacionVibrante } from '@/components/CampoValidacionVibrante';
+import { PasoAnimado } from '@/components/PasoAnimado';
 import { RegistroHeader } from '@/components/RegistroHeader';
 import { Button, Card, Checkbox, Fondo, Input } from '@/components/ui';
 import { FACTOR_ANOMALIA } from '@/domain/medidor.rules';
@@ -11,6 +13,7 @@ import { useRegistro } from '@/hooks/useLecturaForm';
 /** Paso 2: lectura, motivo o descripción según el estado (R5) y control de consumo (R6). */
 export default function DatosScreen() {
   const { codigo, medidor, form, calculo, marcarPaso } = useRegistro();
+  const [intentoValidacion, setIntentoValidacion] = useState(0);
   useFocusEffect(useCallback(() => marcarPaso('datos'), [marcarPaso]));
   const estado = form.watch('estado');
   const pideLectura = estado !== 'INACCESIBLE';
@@ -19,12 +22,15 @@ export default function DatosScreen() {
     // Solo los campos de este paso.
     if (await form.trigger(['lectura', 'motivo', 'descripcion', 'revisionConfirmada'])) {
       router.push({ pathname: '/lectura/[codigo]/foto', params: { codigo } });
+    } else {
+      setIntentoValidacion((intento) => intento + 1);
     }
   };
 
   return (
     <Fondo>
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <PasoAnimado>
+        <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <RegistroHeader paso={2} titulo="Datos de la lectura" />
         <ScrollView contentContainerClassName="gap-4 p-4 pb-10" keyboardShouldPersistTaps="handled">
           {!medidor ? (
@@ -50,19 +56,21 @@ export default function DatosScreen() {
                   control={form.control}
                   name="lectura"
                   render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
-                    <Input
-                      etiqueta={estado === 'DANADO' ? 'Lectura actual (opcional)' : 'Lectura actual (m³)'}
-                      placeholder="0"
-                      keyboardType="number-pad"
-                      value={value}
-                      onChangeText={(t) => {
-                        onChange(t.replace(/\D/g, ''));
-                        // Una lectura distinta exige volver a confirmar la revisión (R6).
-                        form.setValue('revisionConfirmada', false);
-                      }}
-                      onBlur={onBlur}
-                      error={error?.message}
-                    />
+                    <CampoValidacionVibrante error={error?.message} trigger={intentoValidacion}>
+                      <Input
+                        etiqueta={estado === 'DANADO' ? 'Lectura actual (opcional)' : 'Lectura actual (m³)'}
+                        placeholder="0"
+                        keyboardType="number-pad"
+                        value={value}
+                        onChangeText={(t) => {
+                          onChange(t.replace(/\D/g, ''));
+                          // Una lectura distinta exige volver a confirmar la revisión (R6).
+                          form.setValue('revisionConfirmada', false);
+                        }}
+                        onBlur={onBlur}
+                        error={error?.message}
+                      />
+                    </CampoValidacionVibrante>
                   )}
                 />
               </>
@@ -73,15 +81,17 @@ export default function DatosScreen() {
                 control={form.control}
                 name="motivo"
                 render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
-                  <Input
-                    etiqueta="Motivo por el que es inaccesible"
-                    placeholder="Ej. Perro suelto, caja bajo vehículo estacionado…"
-                    multiline
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={error?.message}
-                  />
+                  <CampoValidacionVibrante error={error?.message} trigger={intentoValidacion}>
+                    <Input
+                      etiqueta="Motivo por el que es inaccesible"
+                      placeholder="Ej. Perro suelto, caja bajo vehículo estacionado…"
+                      multiline
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      error={error?.message}
+                    />
+                  </CampoValidacionVibrante>
                 )}
               />
             ) : null}
@@ -91,15 +101,17 @@ export default function DatosScreen() {
                 control={form.control}
                 name="descripcion"
                 render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
-                  <Input
-                    etiqueta="Descripción del daño"
-                    placeholder="Ej. Vidrio roto, numerador empañado…"
-                    multiline
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={error?.message}
-                  />
+                  <CampoValidacionVibrante error={error?.message} trigger={intentoValidacion}>
+                    <Input
+                      etiqueta="Descripción del daño"
+                      placeholder="Ej. Vidrio roto, numerador empañado…"
+                      multiline
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      error={error?.message}
+                    />
+                  </CampoValidacionVibrante>
                 )}
               />
             ) : null}
@@ -134,12 +146,14 @@ export default function DatosScreen() {
                     control={form.control}
                     name="revisionConfirmada"
                     render={({ field: { value, onChange }, fieldState: { error } }) => (
-                      <Checkbox
-                        marcado={value}
-                        onCambiar={onChange}
-                        etiqueta="Revisé el medidor y la lectura es correcta"
-                        error={error?.message}
-                      />
+                      <CampoValidacionVibrante error={error?.message} trigger={intentoValidacion}>
+                        <Checkbox
+                          marcado={value}
+                          onCambiar={onChange}
+                          etiqueta="Revisé el medidor y la lectura es correcta"
+                          error={error?.message}
+                        />
+                      </CampoValidacionVibrante>
                     )}
                   />
                 </View>
@@ -149,7 +163,8 @@ export default function DatosScreen() {
 
           <Button titulo="Continuar" onPress={continuar} />
         </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </PasoAnimado>
     </Fondo>
   );
 }

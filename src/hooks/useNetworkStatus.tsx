@@ -2,6 +2,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, use, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { contarPendientesDeEnvio } from '@/database/repositories/lecturaRepository';
+import { useToast } from '@/components/ToastProvider';
 import { suscribirConexion } from '@/services/networkService';
 import { procesarCola } from '@/services/syncQueue';
 
@@ -21,15 +22,24 @@ interface NetworkContextValue {
 const NetworkContext = createContext<NetworkContextValue | null>(null);
 
 /** R9: envía al abrir, al reconectar, tras registrar y cada 30 s mientras haya pendientes. */
-export function NetworkProvider({ children }: { children: ReactNode }) {
+export function NetworkProvider({
+  children,
+  enabled = true,
+}: {
+  children: ReactNode;
+  enabled?: boolean;
+}) {
   const db = useSQLiteContext();
+  const notificar = useToast();
   const [enLinea, setEnLinea] = useState<boolean | null>(null);
   const [pendientes, setPendientes] = useState(0);
   const [sincronizando, setSincronizando] = useState(false);
   const [ultimaSincronizacion, setUltimaSincronizacion] = useState(0);
   const enLineaRef = useRef(false);
+  const estadoAnterior = useRef<boolean | null>(null);
 
   const sincronizar = useCallback(async () => {
+    if (!enabled) return;
     if (enLineaRef.current) {
       setSincronizando(true);
       try {
@@ -40,25 +50,36 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
       }
     }
     setPendientes(await contarPendientesDeEnvio(db));
-  }, [db]);
+  }, [db, enabled]);
 
   useEffect(
-    () =>
-      suscribirConexion((conectado) => {
+    () => {
+      if (!enabled) {
+        enLineaRef.current = false;
+        estadoAnterior.current = null;
+        return;
+      }
+
+      return suscribirConexion((conectado) => {
         const reconecto = conectado && !enLineaRef.current;
+        if (estadoAnterior.current !== null && conectado !== estadoAnterior.current) {
+          notificar(conectado ? 'Conexión restablecida. Sincronizando…' : 'Modo Offline Activado');
+        }
+        estadoAnterior.current = conectado;
         enLineaRef.current = conectado;
         setEnLinea(conectado);
         if (reconecto) sincronizar();
         else contarPendientesDeEnvio(db).then(setPendientes);
-      }),
-    [db, sincronizar],
+      });
+    },
+    [db, enabled, notificar, sincronizar],
   );
 
   useEffect(() => {
-    if (!enLinea || pendientes === 0) return;
+    if (!enabled || !enLinea || pendientes === 0) return;
     const timer = setInterval(sincronizar, REINTENTO_MS);
     return () => clearInterval(timer);
-  }, [enLinea, pendientes, sincronizar]);
+  }, [enabled, enLinea, pendientes, sincronizar]);
 
   return (
     <NetworkContext

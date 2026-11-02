@@ -3,7 +3,7 @@ export interface Tecnico {
   nombre: string;
 }
 
-/** Lo que se persiste del técnico identificado (R1). Nunca incluye la clave. */
+/** Identidad verificada que se asocia a los registros locales (R1). */
 export interface Sesion {
   tecnico: Tecnico;
   iniciadaEn: string;

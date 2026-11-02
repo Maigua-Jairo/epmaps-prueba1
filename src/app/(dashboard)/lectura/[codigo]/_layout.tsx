@@ -70,7 +70,7 @@ export default function RegistroLayout() {
       medidor={carga.medidor}
       original={carga.original}
       borrador={carga.borrador}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }} />
     </RegistroProvider>
   );
 }

@@ -1,51 +1,28 @@
-import { createContext, use, useEffect, useState, type ReactNode } from 'react';
-
-import { autenticar } from '@/domain/tecnicos';
+import { ProveedorSesion, useSesion } from '@/context/sesion';
 import type { Sesion } from '@/domain/types';
-import { borrarSesion, guardarSesion, leerSesion } from '@/services/sessionStorage';
 
-interface SessionContextValue {
-  sesion: Sesion | null;
-  cargando: boolean;
-  iniciarSesion: (codigo: string, clave: string) => Promise<boolean>;
-  cerrarSesion: () => Promise<void>;
-}
+export const SessionProvider = ProveedorSesion;
 
-const SessionContext = createContext<SessionContextValue | null>(null);
+export function useSession() {
+  const { usuario, nombre, cargando, errorCarga, iniciarSesion, cerrarSesion } = useSesion();
 
-export function SessionProvider({ children }: { children: ReactNode }) {
-  const [sesion, setSesion] = useState<Sesion | null>(null);
-  const [cargando, setCargando] = useState(true);
+  const sesion: Sesion | null = usuario
+    ? {
+        tecnico: {
+          codigo: usuario.uid,
+          nombre: nombre?.trim() || usuario.email || 'Usuario',
+        },
+        iniciadaEn: usuario.metadata.lastSignInTime ?? '',
+      }
+    : null;
 
-  useEffect(() => {
-    leerSesion()
-      .then(setSesion)
-      .finally(() => setCargando(false));
-  }, []);
-
-  const iniciarSesion = async (codigo: string, clave: string) => {
-    const tecnico = autenticar(codigo, clave);
-    if (!tecnico) return false;
-    const nueva: Sesion = { tecnico, iniciadaEn: new Date().toISOString() };
-    await guardarSesion(nueva);
-    setSesion(nueva);
-    return true;
+  return {
+    sesion,
+    nombre,
+    correo: usuario?.email ?? null,
+    cargando,
+    errorCarga,
+    iniciarSesion,
+    cerrarSesion,
   };
-
-  const cerrarSesion = async () => {
-    await borrarSesion();
-    setSesion(null);
-  };
-
-  return (
-    <SessionContext value={{ sesion, cargando, iniciarSesion, cerrarSesion }}>
-      {children}
-    </SessionContext>
-  );
-}
-
-export function useSession(): SessionContextValue {
-  const ctx = use(SessionContext);
-  if (!ctx) throw new Error('useSession debe usarse dentro de <SessionProvider>');
-  return ctx;
 }

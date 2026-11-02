@@ -1,9 +1,13 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 
+import { BotonEnviarLectura } from '@/components/BotonEnviarLectura';
+import { FotoEvidenciaExpandible } from '@/components/FotoEvidenciaExpandible';
+import { PasoAnimado } from '@/components/PasoAnimado';
 import { RegistroHeader } from '@/components/RegistroHeader';
-import { Badge, Button, Card, Fondo } from '@/components/ui';
+import { useToast } from '@/components/ToastProvider';
+import { Badge, Card, Fondo } from '@/components/ui';
 import {
   LecturaDuplicadaError,
   LecturaYaEnviadaError,
@@ -27,11 +31,18 @@ export default function ResumenScreen() {
   const { medidor, original, form, calculo, guardar, marcarPaso } = useRegistro();
   useFocusEffect(useCallback(() => marcarPaso('resumen'), [marcarPaso]));
   const { sincronizar } = useNetworkStatus();
+  const notificar = useToast();
   const [guardando, setGuardando] = useState(false);
+  const [guardado, setGuardado] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const guardadoEnCurso = useRef(false);
   const v = form.watch();
 
+  // The ref prevents duplicate writes before React can render the disabled button.
+  // eslint-disable-next-line react-hooks/refs
   const registrar = form.handleSubmit(async () => {
+    if (guardadoEnCurso.current) return;
+    guardadoEnCurso.current = true;
     setError(null);
     setGuardando(true);
     let id: number;
@@ -47,10 +58,18 @@ export default function ResumenScreen() {
             }`,
       );
       setGuardando(false);
+      guardadoEnCurso.current = false;
       return;
     }
+    setGuardando(false);
+    setGuardado(true);
+    notificar('Lectura guardada en SQLite');
+    await new Promise<void>((resolver) => setTimeout(resolver, 650));
     // Ya está guardada: un fallo del envío no debe reportarse como fallo al guardar.
-    sincronizar();
+    void sincronizar().catch((errorSincronizacion) => {
+      console.warn('La lectura quedó guardada; se reintentará la sincronización', errorSincronizacion);
+      notificar('Lectura guardada; envío pendiente de conexión');
+    });
     router.replace({
       pathname: '/lectura/exito',
       params: { id: String(id), corregida: original ? '1' : '0' },
@@ -59,6 +78,7 @@ export default function ResumenScreen() {
 
   return (
     <Fondo>
+    <PasoAnimado>
       <RegistroHeader paso={4} titulo={original ? 'Confirmar corrección' : 'Confirmar registro'} />
       <ScrollView contentContainerClassName="gap-4 p-4 pb-10">
         <Card>
@@ -84,12 +104,7 @@ export default function ResumenScreen() {
             </View>
           ) : null}
           {v.fotoUri ? (
-            <Image
-              source={{ uri: v.fotoUri }}
-              accessibilityLabel="Foto del medidor"
-              className="mt-3 h-40 w-full rounded-2xl bg-epmaps-dark/10"
-              resizeMode="cover"
-            />
+            <FotoEvidenciaExpandible uri={v.fotoUri} />
           ) : null}
         </Card>
 
@@ -106,12 +121,14 @@ export default function ResumenScreen() {
           </View>
         ) : null}
 
-        <Button
+        <BotonEnviarLectura
           titulo={original ? 'Guardar corrección' : 'Registrar lectura'}
           cargando={guardando}
+          completado={guardado}
           onPress={() => registrar()}
         />
-      </ScrollView>
+        </ScrollView>
+      </PasoAnimado>
     </Fondo>
   );
 }
