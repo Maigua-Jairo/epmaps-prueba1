@@ -19,7 +19,7 @@
 | [ADR-007](#adr-007) | Manejar el formulario de lectura con `react-hook-form` | R5, R6, R7 | Aceptado |
 | [ADR-008](#adr-008) | Capturar la foto con `expo-image-picker` y conservarla con `expo-file-system` | R7 | Aceptado |
 | [ADR-009](#adr-009) | Detectar la conexión con NetInfo y enviar con una cola idempotente por clave medidor-mes | R4, R9, R10 | Aceptado |
-| [ADR-010](#adr-010) | Usar UniWind para los estilos | Diseño no genérico (sanción del enunciado) | Aceptado |
+| [ADR-010](#adr-010) | Usar UniWind para los estilos | Diseño no genérico | Aceptado |
 | [ADR-011](#adr-011) | Mostrar fortaleza estimada de contraseña durante el registro | HU autenticación, Fase 1 | Aceptado |
 | [ADR-012](#adr-012) | Permitir actualizar el nombre de perfil con Firebase Auth | HU autenticación, Fase 2 | Aceptado |
 
