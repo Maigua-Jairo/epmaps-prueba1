@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CargandoMedidorAnimation } from '@/components/FeedbackAnimations';
 import { MedidorCard } from '@/components/MedidorCard';
 import { Button, Card, Fondo, Input, ReflejosCabecera } from '@/components/ui';
 import { esCodigoMedidorValido, LONGITUD_CODIGO_MEDIDOR } from '@/domain/medidor.rules';
@@ -152,9 +153,10 @@ export default function InicioScreen() {
         </Card>
 
         {cargando ? (
-          <View className="items-center py-6">
-            <ActivityIndicator size="large" color="#0455BF" />
-          </View>
+          <Card className="items-center gap-1">
+            <CargandoMedidorAnimation />
+            <Text className="text-sm font-semibold text-slate-600">Buscando datos del medidor…</Text>
+          </Card>
         ) : null}
 
         {error ? (

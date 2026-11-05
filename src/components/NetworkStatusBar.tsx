@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SincronizandoLecturasAnimation } from '@/components/FeedbackAnimations';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 /** Barra superior visible en todas las pantallas: conexión y lecturas por enviar (R9). */
@@ -19,7 +20,7 @@ export function NetworkStatusBar() {
   const { enLinea, pendientes, sincronizando, sincronizar } = useNetworkStatus();
   const pulso = useSharedValue(0);
   const segundoPulso = useSharedValue(0);
-  const activo = enLinea === true && (sincronizando || pendientes > 0);
+  const activo = enLinea === true && !sincronizando && pendientes > 0;
 
   useEffect(() => {
     const repetir = () =>
@@ -63,31 +64,34 @@ export function NetworkStatusBar() {
       className={`flex-row items-center justify-between px-4 pb-2 ${fondo}`}>
       <StatusBar style={comprobando ? 'light' : 'dark'} />
       <View className="flex-row items-center gap-2">
-        <View className="h-3 w-3 items-center justify-center">
-          {activo ? (
+        <View className="h-9 w-9 items-center justify-center">
+          {sincronizando ? (
+            <SincronizandoLecturasAnimation />
+          ) : (
             <>
-              <Animated.View
-                style={estiloPulso}
-                className="absolute h-3 w-3 rounded-full bg-status-online"
-              />
-              <Animated.View
-                style={estiloSegundoPulso}
-                className="absolute h-3 w-3 rounded-full bg-status-online"
+              {activo ? (
+                <>
+                  <Animated.View
+                    style={estiloPulso}
+                    className="absolute h-3 w-3 rounded-full bg-status-online"
+                  />
+                  <Animated.View
+                    style={estiloSegundoPulso}
+                    className="absolute h-3 w-3 rounded-full bg-status-online"
+                  />
+                </>
+              ) : null}
+              <View
+                className={`h-2.5 w-2.5 rounded-full ${
+                  comprobando ? 'bg-epmaps-accent' : enLinea ? 'bg-status-online' : 'bg-status-offline'
+                }`}
               />
             </>
-          ) : null}
-          <View
-            className={`h-2.5 w-2.5 rounded-full ${
-              comprobando ? 'bg-epmaps-accent' : enLinea ? 'bg-status-online' : 'bg-status-offline'
-            }`}
-          />
+          )}
         </View>
         <Text className={`text-sm font-bold ${texto}`}>{estado}</Text>
       </View>
       <View className="flex-row items-center gap-2">
-        {sincronizando ? (
-          <ActivityIndicator size="small" color={comprobando ? '#FFFFFF' : '#023373'} />
-        ) : null}
         <View className="rounded-full border border-white/40 bg-white/30 px-3 py-0.5">
           <Text className={`text-xs font-bold ${texto}`}>{cola}</Text>
         </View>

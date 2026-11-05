@@ -4,6 +4,7 @@ import { ScrollView, Text, View } from 'react-native';
 
 import { BotonEnviarLectura } from '@/components/BotonEnviarLectura';
 import { FotoEvidenciaExpandible } from '@/components/FotoEvidenciaExpandible';
+import { MapaLectura } from '@/components/mapa/MapaLectura';
 import { PasoAnimado } from '@/components/PasoAnimado';
 import { RegistroHeader } from '@/components/RegistroHeader';
 import { useToast } from '@/components/ToastProvider';
@@ -26,7 +27,7 @@ function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   );
 }
 
-/** Paso 4: revisión final y guardado en el teléfono (R4) o corrección (R10). */
+/** Paso 5: revisión final y guardado en el teléfono (R4) o corrección (R10). */
 export default function ResumenScreen() {
   const { medidor, original, form, calculo, guardar, marcarPaso } = useRegistro();
   useFocusEffect(useCallback(() => marcarPaso('resumen'), [marcarPaso]));
@@ -37,6 +38,10 @@ export default function ResumenScreen() {
   const [error, setError] = useState<string | null>(null);
   const guardadoEnCurso = useRef(false);
   const v = form.watch();
+  const latitudSeleccionada = v.latitud;
+  const longitudSeleccionada = v.longitud;
+  const tieneUbicacion =
+    typeof latitudSeleccionada === 'number' && typeof longitudSeleccionada === 'number';
 
   // The ref prevents duplicate writes before React can render the disabled button.
   // eslint-disable-next-line react-hooks/refs
@@ -79,7 +84,7 @@ export default function ResumenScreen() {
   return (
     <Fondo>
     <PasoAnimado>
-      <RegistroHeader paso={4} titulo={original ? 'Confirmar corrección' : 'Confirmar registro'} />
+      <RegistroHeader paso={5} titulo={original ? 'Confirmar corrección' : 'Confirmar registro'} />
       <ScrollView contentContainerClassName="gap-4 p-4 pb-10">
         <Card>
           <Fila etiqueta="Estado del medidor" valor={ETIQUETA_ESTADO[v.estado]} />
@@ -98,6 +103,48 @@ export default function ResumenScreen() {
           {v.estado === 'INACCESIBLE' ? <Fila etiqueta="Motivo" valor={v.motivo} /> : null}
           {v.estado === 'DANADO' ? <Fila etiqueta="Descripción del daño" valor={v.descripcion} /> : null}
           <Fila etiqueta="Foto" valor={v.fotoUri ? 'Adjunta' : 'Sin foto'} />
+          <View className="mt-2 gap-3 border-t border-epmaps-dark/10 pt-4">
+            <View className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-epmaps-accent/15">
+                <Text accessibilityLabel="Ubicación" className="text-xl">📍</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="font-bold text-epmaps-dark">Ubicación seleccionada</Text>
+                <Text className="text-xs text-slate-500">
+                  {v.ubicacionOrigen === 'GPS' ? 'Obtenida por GPS' : 'Marcada manualmente en el mapa'}
+                </Text>
+              </View>
+              <Badge
+                tono={v.ubicacionOrigen === 'GPS' ? 'exito' : 'advertencia'}
+                texto={v.ubicacionOrigen === 'GPS' ? 'GPS' : 'Manual'}
+              />
+            </View>
+            {tieneUbicacion ? (
+              <>
+                <View className="flex-row gap-3">
+                  <View className="flex-1 gap-1 rounded-2xl bg-epmaps-primary/5 p-3">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Latitud
+                    </Text>
+                    <Text className="font-bold text-epmaps-dark">{latitudSeleccionada.toFixed(6)}</Text>
+                  </View>
+                  <View className="flex-1 gap-1 rounded-2xl bg-epmaps-primary/5 p-3">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Longitud
+                    </Text>
+                    <Text className="font-bold text-epmaps-dark">{longitudSeleccionada.toFixed(6)}</Text>
+                  </View>
+                </View>
+                <View className="h-48 overflow-hidden rounded-2xl">
+                  <MapaLectura latitud={latitudSeleccionada} longitud={longitudSeleccionada} />
+                </View>
+              </>
+            ) : (
+              <Text className="text-sm font-semibold text-status-danger">
+                No se ha seleccionado una ubicación.
+              </Text>
+            )}
+          </View>
           {calculo.esAnomalo ? (
             <View className="mt-3">
               <Badge tono="peligro" texto="Consumo anómalo · revisión confirmada" />

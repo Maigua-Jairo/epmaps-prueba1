@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { LecturaFormValues } from '@/domain/medidor.schema';
 
-export type PasoRegistro = 'estado' | 'datos' | 'foto' | 'resumen';
+export type PasoRegistro = 'estado' | 'datos' | 'foto' | 'resumen'| 'ubicacion';
 
 /** Registro a medio llenar (R8). */
 export interface Borrador {

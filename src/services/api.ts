@@ -66,6 +66,9 @@ function cuerpoLectura(l: Lectura): string {
     empleadoCodigo: l.tecnicoCodigo,
     registradaEn: l.registradaEn,
     verificacion: l.verificacion,
+    latitud: l.latitud,
+    longitud: l.longitud,
+    ubicacionOrigen: l.ubicacionOrigen,
   });
 }
 

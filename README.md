@@ -24,6 +24,8 @@ React Native, TypeScript y Expo Router; SQLite permite consultar y registrar lec
    ```
 
 Desde la terminal de Expo puedes abrir la aplicación en un dispositivo o emulador Android/iOS.
+Las animaciones Lottie JSON se guardan localmente en `assets/animations` y se reproducen con
+`lottie-react-native`, compatible con Expo Go en este SDK.
 
 ## Funcionalidades
 

@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-const DATABASE_VERSION = 6;
+const DATABASE_VERSION = 7;
 
 /** Columnas agregadas a `lecturas` después de la v2, con su definición. */
 const COLUMNAS_V3 = {
@@ -12,7 +12,11 @@ const COLUMNAS_V4 = {
   revision: 'INTEGER NOT NULL DEFAULT 0',
   motivo_rechazo: 'TEXT',
 };
-
+const COLUMNAS_V7 = {
+  latitud: 'REAL',
+  longitud: 'REAL',
+  ubicacion_origen: 'TEXT',
+};
 const CREAR_BORRADOR = `
   CREATE TABLE IF NOT EXISTS borrador (
     id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -44,7 +48,11 @@ async function agregarColumnasFaltantes(
 export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
   const currentVersion = row?.user_version ?? 0;
-  if (currentVersion >= DATABASE_VERSION) return;
+  if (currentVersion >= DATABASE_VERSION) {
+    // Repara bases marcadas como v7 por una instalación anterior sin las columnas de ubicación.
+    await agregarColumnasFaltantes(db, 'lecturas', COLUMNAS_V7);
+    return;
+  }
 
   if (currentVersion < 1) {
     // v1: caché de medidores consultados (R3).
@@ -109,7 +117,10 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
     await agregarColumnasFaltantes(db, 'lecturas', { ...COLUMNAS_V3, ...COLUMNAS_V4 });
     await db.execAsync(CREAR_BORRADOR);
   }
-
+  if (currentVersion < 7) {
+    // v7: ubicación de la lectura (latitud, longitud y origen GPS o MANUAL).
+    await agregarColumnasFaltantes(db, 'lecturas', COLUMNAS_V7);
+  }   
   // Lecturas anteriores a v4 necesitan un registro_id para el envío idempotente.
   await db.execAsync(`UPDATE lecturas SET registro_id = 'v3-' || id WHERE registro_id IS NULL`);
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);

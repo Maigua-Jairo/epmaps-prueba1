@@ -6,7 +6,7 @@ import { volver } from '@/utils/navegacion';
 
 import { ReflejosCabecera } from './ui';
 
-export const TOTAL_PASOS = 4;
+export const TOTAL_PASOS = 5;
 
 export function RegistroHeader({ paso, titulo }: { paso: number; titulo: string }) {
   const { top } = useSafeAreaInsets();

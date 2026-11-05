@@ -63,6 +63,9 @@ const VALORES_INICIALES: DefaultValues<LecturaFormValues> = {
   descripcion: '',
   revisionConfirmada: false,
   fotoUri: null,
+  latitud: null,
+  longitud: null,
+  ubicacionOrigen: null,
 };
 
 function valoresDe(l: Lectura): LecturaFormValues {
@@ -73,6 +76,9 @@ function valoresDe(l: Lectura): LecturaFormValues {
     descripcion: l.estadoMedidor === 'DANADO' ? (l.observacion ?? '') : '',
     revisionConfirmada: l.revisionConfirmada,
     fotoUri: l.fotoUri,
+    latitud: l.latitud,
+    longitud: l.longitud,
+    ubicacionOrigen: l.ubicacionOrigen,
   };
 }
 
@@ -185,6 +191,9 @@ export function RegistroProvider({
         v.estado === 'INACCESIBLE' ? v.motivo.trim() : v.estado === 'DANADO' ? v.descripcion.trim() : null,
       fotoUri: v.fotoUri,
       verificacion,
+      latitud: v.latitud ?? null,
+      longitud: v.longitud ?? null,
+      ubicacionOrigen: v.ubicacionOrigen ?? null,
     };
 
     let id: number;

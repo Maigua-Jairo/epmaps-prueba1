@@ -46,6 +46,9 @@ interface LecturaRow {
   motivo_rechazo: string | null;
   revision: number;
   registrada_en: string;
+  latitud: number | null;
+  longitud: number | null;
+  ubicacion_origen: 'GPS' | 'MANUAL' | null;
 }
 
 function aLectura(row: LecturaRow): Lectura {
@@ -70,6 +73,9 @@ function aLectura(row: LecturaRow): Lectura {
     motivoRechazo: row.motivo_rechazo,
     revision: row.revision,
     registradaEn: row.registrada_en,
+    latitud:row.latitud,
+    longitud:row.longitud,
+    ubicacionOrigen: row.ubicacion_origen,
   };
 }
 
@@ -79,8 +85,8 @@ export async function insertarLectura(db: SQLiteDatabase, l: NuevaLectura): Prom
       `INSERT INTO lecturas
          (registro_id, clave, codigo_medidor, periodo, tecnico_codigo, estado_medidor, lectura,
           lectura_anterior, consumo, consumo_promedio, es_anomalo, revision_confirmada,
-          observacion, foto_uri, verificacion, registrada_en)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          observacion, foto_uri, verificacion, registrada_en, latitud, longitud, ubicacion_origen)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       l.registroId,
       l.clave,
       l.codigoMedidor,
@@ -97,6 +103,9 @@ export async function insertarLectura(db: SQLiteDatabase, l: NuevaLectura): Prom
       l.fotoUri,
       l.verificacion,
       l.registradaEn,
+      l.latitud,
+      l.longitud,
+      l.ubicacionOrigen,
     );
     return result.lastInsertRowId;
   } catch (e) {
@@ -118,7 +127,7 @@ export async function corregirLectura(
     `UPDATE lecturas
        SET estado_medidor = ?, lectura = ?, lectura_anterior = ?, consumo = ?, consumo_promedio = ?,
            es_anomalo = ?, revision_confirmada = ?, observacion = ?, foto_uri = ?, verificacion = ?,
-           revision = revision + 1
+           latitud = ?, longitud = ?, ubicacion_origen = ?, revision = revision + 1
      WHERE id = ? AND estado_envio = 'PENDIENTE'`,
     c.estadoMedidor,
     c.lectura,
@@ -130,6 +139,9 @@ export async function corregirLectura(
     c.observacion,
     c.fotoUri,
     c.verificacion,
+    c.latitud,
+    c.longitud,
+    c.ubicacionOrigen,
     id,
   );
   if (result.changes === 0) throw new LecturaYaEnviadaError();

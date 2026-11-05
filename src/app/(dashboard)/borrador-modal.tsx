@@ -14,6 +14,7 @@ const ETIQUETA_PASO: Record<PasoRegistro, string> = {
   datos: 'Datos de la lectura',
   foto: 'Foto de respaldo',
   resumen: 'Confirmación',
+  ubicacion: 'Ubicación del medidor',
 };
 
 const ETIQUETA_ESTADO = { NORMAL: 'Normal', INACCESIBLE: 'Inaccesible', DANADO: 'Dañado' } as const;

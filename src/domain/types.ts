@@ -58,6 +58,10 @@ export interface Lectura {
   /** Aumenta con cada corrección; evita marcar como enviada una versión ya corregida. */
   revision: number;
   registradaEn: string;
+    latitud: number | null;
+  longitud: number | null;
+  /** GPS: posición actual; MANUAL: marcador movido por el técnico. */
+  ubicacionOrigen: 'GPS' | 'MANUAL' | null;
 }
 
 export type NuevaLectura = Omit<Lectura, 'id' | 'estadoEnvio' | 'motivoRechazo' | 'revision'>;
@@ -75,4 +79,7 @@ export type CorreccionLectura = Pick<
   | 'observacion'
   | 'fotoUri'
   | 'verificacion'
+  |'latitud' 
+  | 'longitud' 
+  | 'ubicacionOrigen'
 >;

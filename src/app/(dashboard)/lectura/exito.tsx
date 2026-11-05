@@ -5,6 +5,7 @@ import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge, Button, Card, Fondo } from '@/components/ui';
+import { LecturaGuardadaAnimation } from '@/components/FeedbackAnimations';
 import { obtenerLectura } from '@/database/repositories/lecturaRepository';
 import type { Lectura } from '@/domain/types';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
@@ -25,11 +26,7 @@ export default function ExitoScreen() {
   return (
     <Fondo style={{ paddingBottom: bottom + 16 }} className="justify-between px-6">
       <View className="flex-1 items-center justify-center gap-4">
-        <View className="h-24 w-24 items-center justify-center rounded-full border border-white bg-status-online/20">
-          <View className="h-16 w-16 items-center justify-center rounded-full bg-status-online">
-            <Text className="text-3xl font-bold text-white">✓</Text>
-          </View>
-        </View>
+        <LecturaGuardadaAnimation />
         <Text className="text-3xl font-extrabold text-epmaps-dark">
           {corregida === '1' ? 'Lectura corregida' : 'Lectura registrada'}
         </Text>

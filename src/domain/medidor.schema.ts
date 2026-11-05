@@ -17,6 +17,9 @@ export function crearLecturaSchema(medidor: Medidor | null) {
       descripcion: z.string().trim(),
       revisionConfirmada: z.boolean(),
       fotoUri: z.string().nullable(),
+      latitud: z.number().nullable(),
+      longitud: z.number().nullable(),
+      ubicacionOrigen: z.enum(['GPS', 'MANUAL']).nullable(),
     })
     .superRefine((d, ctx) => {
       const tieneLectura = d.lectura !== '';

@@ -26,7 +26,7 @@ export default function FotoScreen() {
 
   const continuar = async () => {
     if (await form.trigger('fotoUri')) {
-      router.push({ pathname: '/lectura/[codigo]/resumen', params: { codigo } });
+      router.push({ pathname: '/lectura/[codigo]/ubicacion', params: { codigo } });
     }
   };
 

@@ -41,7 +41,13 @@
           "microphonePermission": false
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "EPMAPS Lecturas usa tu ubicación para registrar dónde está el medidor al tomar la lectura."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
